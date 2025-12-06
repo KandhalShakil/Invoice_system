@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Shakil's Grocery Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #138808;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: #f9f9f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #138808;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(19, 136, 8, 0.1);
+        }
+
+        .otp-container {
+            display: none;
+        }
+
+        .otp-container.show {
+            display: block;
+        }
+
+        .otp-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .otp-inputs input {
+            width: 50px;
+            height: 55px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .otp-inputs input:focus {
+            outline: none;
+            border-color: #138808;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(19, 136, 8, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #138808 0%, #0d5c06 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(19, 136, 8, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #138808;
+            border: 2px solid #138808;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f9f0;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.95em;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .resend-info {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .resend-link {
+            color: #138808;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+
+        .timer {
+            color: #FF9933;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🏪 Invoice System</h1>
+            <p id="modeText">Secure Login</p>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <!-- Mode Toggle -->
+        <div style="text-align: center; margin-bottom: 20px; display: flex; gap: 10px; justify-content: center;">
+            <button class="btn-secondary" onclick="switchToLogin()" id="loginModeBtn" style="border: 2px solid #138808; background: linear-gradient(135deg, #138808 0%, #0d5c06 100%); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                Login
+            </button>
+            <button class="btn-secondary" onclick="switchToSignup()" id="signupModeBtn" style="border: 2px solid #138808; background: white; color: #138808; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                Sign Up
+            </button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="email-form">
+            <div class="form-group">
+                <label for="loginEmail">📧 Email Address</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">🔒 Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" required>
+            </div>
+            <div style="text-align: right; margin-bottom: 15px;">
+                <a href="#" onclick="switchToForgotPassword(event)" style="color: #138808; font-size: 0.9em; text-decoration: none; font-weight: 600;">Forgot Password?</a>
+            </div>
+            <button class="btn btn-primary" onclick="handleLogin()" id="loginBtn">
+                Login
+            </button>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signupForm" class="email-form" style="display: none;">
+            <div id="signupDetailsStep">
+                <div class="form-group">
+                    <label for="signupEmail">📧 Email Address</label>
+                    <input type="email" id="signupEmail" placeholder="Enter your email" autocomplete="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">🔒 Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a strong password" autocomplete="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">🔒 Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="shopName">🏪 Shop Name</label>
+                    <input type="text" id="shopName" placeholder="e.g., Shakil's Grocery Store" required>
+                </div>
+                <div class="form-group">
+                    <label for="shopAddress">📍 Shop Address</label>
+                    <textarea id="shopAddress" rows="3" placeholder="Enter complete shop address with street, area, city, state and pin code&#10;Example: Shop No. 15, Market Road, Satellite Area&#10;Ahmedabad, Gujarat - 380015" required></textarea>
+                    <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                        💡 Include street, landmark, city, state & pin code
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label for="shopPhone">📞 Shop Phone Number</label>
+                    <input type="tel" id="shopPhone" placeholder="e.g., +91 98765 43210" pattern="[+]?[0-9\s-()]+" required>
+                    <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                        💡 Include country code (e.g., +91 for India)
+                    </small>
+                </div>
+                <button class="btn btn-primary" onclick="sendSignupOTP()" id="signupBtn">
+                    Continue
+                </button>
+            </div>
+
+            <div id="verifyEmailStep" style="display: none;">
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                    ✉️ We've sent a verification code to<br>
+                    <strong id="verifyEmailDisplay"></strong>
+                </p>
+                <div class="form-group">
+                    <label>🔐 Enter 6-Digit Verification Code</label>
+                    <div class="otp-inputs">
+                        <input type="text" maxlength="1" class="otp-input-verify" data-index="0">
+                        <input type="text" maxlength="1" class="otp-input-verify" data-index="1">
+                        <input type="text" maxlength="1" class="otp-input-verify" data-index="2">
+                        <input type="text" maxlength="1" class="otp-input-verify" data-index="3">
+                        <input type="text" maxlength="1" class="otp-input-verify" data-index="4">
+                        <input type="text" maxlength="1" class="otp-input-verify" data-index="5">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="verifySignupOTP()" id="verifyBtn">
+                    Verify & Create Account
+                </button>
+                <div class="resend-info">
+                    <span id="verifyTimerText">Resend code in <strong id="verifyTimer">60</strong>s</span>
+                    <a href="#" id="verifyResendLink" onclick="resendSignupOTP(event)" class="resend-link" style="display: none;">Resend Code</a>
+                </div>
+                <button class="btn btn-secondary" onclick="backToSignupDetails()">
+                    ← Change Details
+                </button>
+            </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgotPasswordForm" class="email-form" style="display: none;">
+            <div id="forgotEmailStep">
+                <div class="form-group">
+                    <label for="forgotEmail">📧 Email Address</label>
+                    <input type="email" id="forgotEmail" placeholder="Enter your registered email" required>
+                </div>
+                <button class="btn btn-primary" onclick="sendResetOTP()" id="sendResetBtn">
+                    Send Reset OTP
+                </button>
+                <button class="btn btn-secondary" onclick="switchToLogin()">
+                    ← Back to Login
+                </button>
+            </div>
+
+            <div id="resetPasswordStep" style="display: none;">
+                <div class="form-group">
+                    <label>🔐 Enter 6-Digit OTP</label>
+                    <div class="otp-inputs">
+                        <input type="text" maxlength="1" class="otp-input-reset" data-index="0">
+                        <input type="text" maxlength="1" class="otp-input-reset" data-index="1">
+                        <input type="text" maxlength="1" class="otp-input-reset" data-index="2">
+                        <input type="text" maxlength="1" class="otp-input-reset" data-index="3">
+                        <input type="text" maxlength="1" class="otp-input-reset" data-index="4">
+                        <input type="text" maxlength="1" class="otp-input-reset" data-index="5">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">🔒 New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">🔒 Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" placeholder="Re-enter new password" required>
+                </div>
+                <button class="btn btn-primary" onclick="resetPassword()" id="resetPasswordBtn">
+                    Reset Password
+                </button>
+                <button class="btn btn-secondary" onclick="switchToLogin()">
+                    ← Back to Login
+                </button>
+                <div class="resend-info">
+                    <span id="resetTimerText">Resend OTP in <span class="timer" id="resetTimer">60</span>s</span>
+                    <a href="#" class="resend-link" id="resetResendLink" style="display: none;" onclick="resendResetOTP(event)">Resend OTP</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000';
+        let currentEmail = '';
+        let resetTimer = null;
+        let verifyTimer = null;
+        let timeLeft = 60;
+
+        // Mode switching functions
+        function switchToLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            // Reset signup form to initial step
+            document.getElementById('signupDetailsStep').style.display = 'block';
+            document.getElementById('verifyEmailStep').style.display = 'none';
+            if (verifyTimer) clearInterval(verifyTimer);
+            document.getElementById('modeText').textContent = 'Secure Login';
+            document.getElementById('loginModeBtn').style.background = 'linear-gradient(135deg, #138808 0%, #0d5c06 100%)';
+            document.getElementById('loginModeBtn').style.color = 'white';
+            document.getElementById('signupModeBtn').style.background = 'white';
+            document.getElementById('signupModeBtn').style.color = '#138808';
+        }
+
+        function switchToSignup() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'block';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            // Reset signup form to initial step
+            document.getElementById('signupDetailsStep').style.display = 'block';
+            document.getElementById('verifyEmailStep').style.display = 'none';
+            if (verifyTimer) clearInterval(verifyTimer);
+            document.getElementById('modeText').textContent = 'Create Your Shop Account';
+            document.getElementById('loginModeBtn').style.background = 'white';
+            document.getElementById('loginModeBtn').style.color = '#138808';
+            document.getElementById('signupModeBtn').style.background = 'linear-gradient(135deg, #138808 0%, #0d5c06 100%)';
+            document.getElementById('signupModeBtn').style.color = 'white';
+        }
+
+        function switchToForgotPassword(event) {
+            if (event) event.preventDefault();
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+            document.getElementById('forgotEmailStep').style.display = 'block';
+            document.getElementById('resetPasswordStep').style.display = 'none';
+            document.getElementById('modeText').textContent = 'Reset Password';
+        }
+
+        // OTP Input handling for reset
+        document.querySelectorAll('.otp-input-reset').forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < 5) {
+                    document.querySelector(`.otp-input-reset[data-index="${index + 1}"]`).focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    document.querySelector(`.otp-input-reset[data-index="${index - 1}"]`).focus();
+                }
+            });
+        });
+
+        // OTP Input handling for signup verification
+        document.querySelectorAll('.otp-input-verify').forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < 5) {
+                    document.querySelector(`.otp-input-verify[data-index="${index + 1}"]`).focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    document.querySelector(`.otp-input-verify[data-index="${index - 1}"]`).focus();
+                }
+            });
+        });
+
+        function showMessage(message, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = message;
+            msgDiv.className = `message ${type} show`;
+            setTimeout(() => {
+                msgDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        function startResetTimer() {
+            timeLeft = 60;
+            document.getElementById('resetTimerText').style.display = 'inline';
+            document.getElementById('resetResendLink').style.display = 'none';
+            
+            resetTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('resetTimer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(resetTimer);
+                    document.getElementById('resetTimerText').style.display = 'none';
+                    document.getElementById('resetResendLink').style.display = 'inline';
+                }
+            }, 1000);
+        }
+
+        function startVerifyTimer() {
+            timeLeft = 60;
+            document.getElementById('verifyTimerText').style.display = 'inline';
+            document.getElementById('verifyResendLink').style.display = 'none';
+            
+            verifyTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('verifyTimer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(verifyTimer);
+                    document.getElementById('verifyTimerText').style.display = 'none';
+                    document.getElementById('verifyResendLink').style.display = 'inline';
+                }
+            }, 1000);
+        }
+
+        // Login function
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const btn = document.getElementById('loginBtn');
+
+            if (!email || !password) {
+                showMessage('Please enter email and password', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('session_token', data.session_token);
+                    localStorage.setItem('user_email', data.email);
+                    localStorage.setItem('shop_name', data.shop_name);
+                    localStorage.setItem('shop_address', data.shop_address);
+                    localStorage.setItem('shop_phone', data.shop_phone);
+                    
+                    showMessage('Login successful! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    showMessage(data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Login';
+            }
+        }
+
+        // Signup functions
+        async function sendSignupOTP() {
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const shopName = document.getElementById('shopName').value.trim();
+            const shopAddress = document.getElementById('shopAddress').value.trim();
+            const shopPhone = document.getElementById('shopPhone').value.trim();
+            const btn = document.getElementById('signupBtn');
+
+            if (!email || !password || !confirmPassword || !shopName || !shopAddress || !shopPhone) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+            currentEmail = email;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/send-signup-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        shop_name: shopName,
+                        shop_address: shopAddress,
+                        shop_phone: shopPhone
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Verification code sent! Check your email.', 'success');
+                    document.getElementById('signupDetailsStep').style.display = 'none';
+                    document.getElementById('verifyEmailStep').style.display = 'block';
+                    document.getElementById('verifyEmailDisplay').textContent = email;
+                    document.querySelector('.otp-input-verify').focus();
+                    startVerifyTimer();
+                } else {
+                    showMessage(data.error || 'Failed to send verification code', 'error');
+                }
+            } catch (error) {
+                console.error('Full error details:', error);
+                showMessage('Network error: ' + error.message + '. Make sure you access via http://127.0.0.1:5000/login.html', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Continue';
+            }
+        }
+
+        async function verifySignupOTP() {
+            const otpInputs = document.querySelectorAll('.otp-input-verify');
+            const otp = Array.from(otpInputs).map(input => input.value).join('');
+            const btn = document.getElementById('verifyBtn');
+
+            if (otp.length !== 6) {
+                showMessage('Please enter complete 6-digit code', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/verify-signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: currentEmail,
+                        otp: otp
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Account created successfully! Please login.', 'success');
+                    setTimeout(() => {
+                        switchToLogin();
+                        document.getElementById('loginEmail').value = currentEmail;
+                    }, 2000);
+                } else {
+                    showMessage(data.error || 'Verification failed', 'error');
+                    otpInputs.forEach(input => input.value = '');
+                    otpInputs[0].focus();
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Verify & Create Account';
+            }
+        }
+
+        function backToSignupDetails() {
+            document.getElementById('verifyEmailStep').style.display = 'none';
+            document.getElementById('signupDetailsStep').style.display = 'block';
+            document.querySelectorAll('.otp-input-verify').forEach(input => input.value = '');
+            if (verifyTimer) clearInterval(verifyTimer);
+        }
+
+        async function resendSignupOTP(event) {
+            event.preventDefault();
+            document.getElementById('verifyResendLink').style.display = 'none';
+            // Reuse the form data to resend
+            await sendSignupOTP();
+        }
+
+        // Forgot password functions
+        async function sendResetOTP() {
+            const email = document.getElementById('forgotEmail').value.trim();
+            const btn = document.getElementById('sendResetBtn');
+
+            if (!email) {
+                showMessage('Please enter your email', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+            currentEmail = email;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Reset OTP sent! Check your email.', 'success');
+                    document.getElementById('forgotEmailStep').style.display = 'none';
+                    document.getElementById('resetPasswordStep').style.display = 'block';
+                    document.querySelector('.otp-input-reset').focus();
+                    startResetTimer();
+                } else {
+                    showMessage(data.error || 'Failed to send OTP', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Send Reset OTP';
+            }
+        }
+
+        async function resetPassword() {
+            const otpInputs = document.querySelectorAll('.otp-input-reset');
+            const otp = Array.from(otpInputs).map(input => input.value).join('');
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value.trim();
+            const btn = document.getElementById('resetPasswordBtn');
+
+            if (otp.length !== 6) {
+                showMessage('Please enter complete 6-digit OTP', 'error');
+                return;
+            }
+
+            if (!newPassword || !confirmNewPassword) {
+                showMessage('Please enter and confirm new password', 'error');
+                return;
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showMessage('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: currentEmail,
+                        otp: otp,
+                        new_password: newPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Password reset successful! Please login.', 'success');
+                    setTimeout(() => {
+                        switchToLogin();
+                        document.getElementById('loginEmail').value = currentEmail;
+                    }, 2000);
+                } else {
+                    showMessage(data.error || 'Password reset failed', 'error');
+                    otpInputs.forEach(input => input.value = '');
+                    otpInputs[0].focus();
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Reset Password';
+            }
+        }
+
+        async function resendResetOTP(event) {
+            event.preventDefault();
+            document.getElementById('resetResendLink').style.display = 'none';
+            await sendResetOTP();
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('loginEmail').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    </script>
+</body>
+</html>

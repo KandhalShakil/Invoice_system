@@ -794,8 +794,8 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🏪 Shakil's Grocery Shop</h1>
+        <div class="header" id="mainHeader">
+            <h1 id="shopNameHeader">🏪 Loading...</h1>
             <p>MongoDB-Powered Invoice Management System</p>
         </div>
 
@@ -994,6 +994,99 @@
         let currentItems = [];
         let invoiceItems = [];
         let popupCallback = null;
+        
+        // Check authentication on page load
+        async function checkAuth() {
+            const sessionToken = localStorage.getItem('session_token');
+            
+            if (!sessionToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/verify-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ session_token: sessionToken })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    localStorage.removeItem('session_token');
+                    localStorage.removeItem('user_email');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Update UI with user email
+                const userEmail = localStorage.getItem('user_email');
+                const shopName = localStorage.getItem('shop_name') || data.shop_name || 'Shop';
+                const shopAddress = localStorage.getItem('shop_address') || data.shop_address || '';
+                const shopPhone = localStorage.getItem('shop_phone') || data.shop_phone || '';
+                
+                // Update shop name in header
+                document.getElementById('shopNameHeader').textContent = `🏪 ${shopName}`;
+                document.title = `${shopName} - Invoice System`;
+                
+                // Store shop details if from API
+                if (data.shop_name) {
+                    localStorage.setItem('shop_name', data.shop_name);
+                    localStorage.setItem('shop_address', data.shop_address);
+                    localStorage.setItem('shop_phone', data.shop_phone);
+                }
+                
+                if (userEmail) {
+                    updateHeaderWithUser(userEmail);
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = 'login.html';
+            }
+        }
+        
+        function updateHeaderWithUser(email) {
+            const header = document.querySelector('.header');
+            const logoutBtn = document.createElement('div');
+            logoutBtn.style.cssText = 'position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 15px;';
+            logoutBtn.innerHTML = `
+                <span style="color: #138808; font-weight: 600; font-size: 0.95em;">👤 ${email}</span>
+                <button onclick="logout()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                    🚪 Logout
+                </button>
+            `;
+            header.style.position = 'relative';
+            header.appendChild(logoutBtn);
+        }
+        
+        async function logout() {
+            const sessionToken = localStorage.getItem('session_token');
+            
+            try {
+                await fetch(`${API_BASE}/api/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ session_token: sessionToken })
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            localStorage.removeItem('session_token');
+            localStorage.removeItem('user_email');
+            localStorage.removeItem('shop_name');
+            localStorage.removeItem('shop_address');
+            localStorage.removeItem('shop_phone');
+            window.location.href = 'login.html';
+        }
+        
+        // Run auth check immediately
+        checkAuth();
         
         // Popup Functions
         function showPopup(title, message, type = 'confirm', callback = null) {
@@ -1663,7 +1756,8 @@
                         `Invoice #${data.invoice.invoice_id} created successfully! Would you like to download the PDF?`,
                         'confirm',
                         () => {
-                            window.open(`${API_BASE}/api/invoices/${data.invoice.invoice_id}/pdf`, '_blank');
+                            const sessionToken = localStorage.getItem('session_token');
+                            window.open(`${API_BASE}/api/invoices/${data.invoice.invoice_id}/pdf?session_token=${sessionToken}`, '_blank');
                         }
                     );
                     clearInvoiceForm();
@@ -1780,7 +1874,8 @@
         }
 
         function downloadInvoicePDF(invoiceId) {
-            window.open(`${API_BASE}/api/invoices/${invoiceId}/pdf`, '_blank');
+            const sessionToken = localStorage.getItem('session_token');
+            window.open(`${API_BASE}/api/invoices/${invoiceId}/pdf?session_token=${sessionToken}`, '_blank');
         }
 
         function searchInvoices() {
@@ -1820,5 +1915,15 @@
             });
         });
     </script>
+    
+    <!-- Footer -->
+    <div style="text-align: center; padding: 30px 20px; margin-top: 40px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <p style="color: #138808; font-weight: bold; font-size: 1.2em; margin: 0 0 10px 0;">
+            ⚡ Kandhal Invoice System
+        </p>
+        <p style="color: #666; font-size: 0.9em; margin: 0;">
+            Powered by Kandhal Technologies | Modern Invoice Management Solution
+        </p>
+    </div>
 </body>
 </html>

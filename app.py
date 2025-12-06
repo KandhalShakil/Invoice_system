@@ -16,6 +16,9 @@ import hashlib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
+import qrcode
+from io import BytesIO
+import base64
 
 # Load environment variables from .env file
 load_dotenv()
@@ -38,12 +41,16 @@ db = client[database_name]
 items_collection = db.items
 invoices_collection = db.invoices
 auth_collection = db.auth_sessions
+customers_collection = db.customers
 # Create indexes for better performance
 items_collection.create_index("item_name")
 invoices_collection.create_index("invoice_id")
 invoices_collection.create_index("customer_name")
 auth_collection.create_index("email")
 auth_collection.create_index("expires_at", expireAfterSeconds=0)
+customers_collection.create_index("email")
+customers_collection.create_index("phone")
+customers_collection.create_index("user_email")
 
 # Migration: Only fix items with truly missing or N/A units
 print("Running database migration for units...")
@@ -445,6 +452,52 @@ def logout():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+# Security middleware to verify session token
+def verify_session_token(token):
+    """Verify if session token is valid and not expired"""
+    if not token:
+        return None
+    
+    auth_doc = auth_collection.find_one({"session_token": token})
+    
+    if not auth_doc:
+        return None
+    
+    # Check if session expired
+    if auth_doc.get('session_expires', datetime.now()) < datetime.now():
+        # Clean up expired session
+        auth_collection.update_one(
+            {"session_token": token},
+            {"$unset": {"session_token": "", "session_expires": ""}}
+        )
+        return None
+    
+    return auth_doc
+
+def require_auth(f):
+    """Decorator to require authentication for routes"""
+    from functools import wraps
+    
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Get token from header or query param
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            token = request.args.get('session_token', '')
+        
+        auth_doc = verify_session_token(token)
+        
+        if not auth_doc:
+            return jsonify({"success": False, "error": "Unauthorized. Please login."}), 401
+        
+        # Add user email to request context
+        request.user_email = auth_doc['email']
+        request.user_id = str(auth_doc['_id'])
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
 # Custom JSON serialization function
 def serialize_doc(doc):
     """Convert MongoDB document to JSON serializable format"""
@@ -464,78 +517,170 @@ def serialize_doc(doc):
         return result
     return doc
 
+def generate_qr_code(data):
+    """Generate QR code and return as base64 string"""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str
+
 @app.route('/api/items', methods=['GET'])
+@require_auth
 def get_items():
-    """Get all items"""
+    """Get all items - Requires authentication"""
     try:
-        items = list(items_collection.find())
+        user_email = request.user_email
+        items = list(items_collection.find({"user_email": user_email}))
         serialized_items = [serialize_doc(item) for item in items]
         return jsonify({"success": True, "items": serialized_items})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/items', methods=['POST'])
+@require_auth
 def add_item():
-    """Add new item"""
+    """Add new item - Requires authentication"""
     try:
         data = request.json
-        item_name = data.get('item_name')
-        item_price = float(data.get('item_price'))
-        stock = int(data.get('stock'))
-        unit = data.get('unit', 'pcs')  # Default to pieces if not specified
         
-        # Check if item already exists
-        existing_item = items_collection.find_one({"item_name": item_name})
+        # Input validation
+        item_name = data.get('item_name', '').strip()
+        if not item_name:
+            return jsonify({"success": False, "error": "Item name is required"}), 400
+        
+        try:
+            item_price = float(data.get('item_price', 0))
+            if item_price < 0:
+                return jsonify({"success": False, "error": "Price cannot be negative"}), 400
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Invalid price format"}), 400
+        
+        try:
+            stock = int(data.get('stock', 0))
+            if stock < 0:
+                return jsonify({"success": False, "error": "Stock cannot be negative"}), 400
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Invalid stock format"}), 400
+        
+        unit = data.get('unit', 'pcs').strip()
+        if not unit:
+            unit = 'pcs'
+        
+        # Check if item already exists for this user
+        user_email = request.user_email
+        existing_item = items_collection.find_one({"item_name": item_name, "user_email": user_email})
         if existing_item:
             # Update stock if item exists
             items_collection.update_one(
-                {"item_name": item_name},
+                {"item_name": item_name, "user_email": user_email},
                 {"$inc": {"stock": stock}, "$set": {"unit": unit}}
             )
-            updated_item = items_collection.find_one({"item_name": item_name})
+            updated_item = items_collection.find_one({"item_name": item_name, "user_email": user_email})
             return jsonify({
                 "success": True, 
                 "message": f"Updated stock for {item_name}",
                 "item": serialize_doc(updated_item)
             })
         else:
-            # Create new item
+            # Create new item with user_email
             item_doc = {
                 "item_name": item_name,
                 "item_price": item_price,
                 "stock": stock,
                 "unit": unit,
+                "user_email": user_email,
                 "created_at": datetime.now()
             }
             result = items_collection.insert_one(item_doc)
             item_doc["_id"] = result.inserted_id
+            
+            # Generate QR code for the item
+            qr_data = {
+                "item_id": str(item_doc["_id"]),
+                "item_name": item_name,
+                "item_price": item_price,
+                "unit": unit
+            }
+            qr_code = generate_qr_code(json.dumps(qr_data))
+            
             return jsonify({
                 "success": True, 
                 "message": f"Item {item_name} added successfully",
-                "item": serialize_doc(item_doc)
+                "item": serialize_doc(item_doc),
+                "qr_code": qr_code
             })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
 
 @app.route('/api/items/<item_id>', methods=['PUT'])
+@require_auth
 def update_item(item_id):
-    """Update item"""
+    """Update item - Requires authentication"""
     try:
+        # Validate ObjectId
+        try:
+            ObjectId(item_id)
+        except:
+            return jsonify({"success": False, "error": "Invalid item ID"}), 400
+        
+        user_email = request.user_email
+        
+        # Check if item exists and belongs to user
+        existing_item = items_collection.find_one({"_id": ObjectId(item_id), "user_email": user_email})
+        if not existing_item:
+            return jsonify({"success": False, "error": "Item not found or access denied"}), 404
+        
         data = request.json
         update_data = {}
         
+        # Validate and sanitize inputs
+        if 'item_name' in data:
+            item_name = data['item_name'].strip()
+            if item_name:
+                update_data['item_name'] = item_name
+        
         if 'item_price' in data:
-            update_data['item_price'] = float(data['item_price'])
+            try:
+                price = float(data['item_price'])
+                if price < 0:
+                    return jsonify({"success": False, "error": "Price cannot be negative"}), 400
+                update_data['item_price'] = price
+            except (TypeError, ValueError):
+                return jsonify({"success": False, "error": "Invalid price format"}), 400
+        
         if 'stock' in data:
-            if data.get('update_type') == 'add':
-                items_collection.update_one(
-                    {"_id": ObjectId(item_id)},
-                    {"$inc": {"stock": int(data['stock'])}}
-                )
-            else:
-                update_data['stock'] = int(data['stock'])
+            try:
+                stock_value = int(data['stock'])
+                if stock_value < 0:
+                    return jsonify({"success": False, "error": "Stock cannot be negative"}), 400
+                    
+                if data.get('update_type') == 'add':
+                    items_collection.update_one(
+                        {"_id": ObjectId(item_id)},
+                        {"$inc": {"stock": stock_value}}
+                    )
+                else:
+                    update_data['stock'] = stock_value
+            except (TypeError, ValueError):
+                return jsonify({"success": False, "error": "Invalid stock format"}), 400
+        
+        if 'unit' in data:
+            unit = data['unit'].strip()
+            if unit:
+                update_data['unit'] = unit
         
         if update_data:
+            update_data['updated_at'] = datetime.now()
             items_collection.update_one(
                 {"_id": ObjectId(item_id)},
                 {"$set": update_data}
@@ -551,25 +696,253 @@ def update_item(item_id):
         return jsonify({"success": False, "error": str(e)}), 400
 
 @app.route('/api/items/<item_id>', methods=['DELETE'])
+@require_auth
 def delete_item(item_id):
-    """Delete item"""
+    """Delete item - Requires authentication"""
     try:
-        result = items_collection.delete_one({"_id": ObjectId(item_id)})
+        # Validate ObjectId
+        try:
+            ObjectId(item_id)
+        except:
+            return jsonify({"success": False, "error": "Invalid item ID"}), 400
+        
+        user_email = request.user_email
+        result = items_collection.delete_one({"_id": ObjectId(item_id), "user_email": user_email})
         if result.deleted_count > 0:
             return jsonify({"success": True, "message": "Item deleted successfully"})
         else:
-            return jsonify({"success": False, "error": "Item not found"}), 404
+            return jsonify({"success": False, "error": "Item not found or access denied"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+
+@app.route('/api/items/<item_id>/qrcode', methods=['GET'])
+@require_auth
+def get_item_qrcode(item_id):
+    """Get QR code for specific item - Requires authentication"""
+    try:
+        # Validate ObjectId
+        try:
+            ObjectId(item_id)
+        except:
+            return jsonify({"success": False, "error": "Invalid item ID"}), 400
+        
+        user_email = request.user_email
+        item = items_collection.find_one({"_id": ObjectId(item_id), "user_email": user_email})
+        
+        if not item:
+            return jsonify({"success": False, "error": "Item not found or access denied"}), 404
+        
+        # Generate QR code
+        qr_data = {
+            "item_id": str(item["_id"]),
+            "item_name": item["item_name"],
+            "item_price": item["item_price"],
+            "unit": item.get("unit", "pcs")
+        }
+        qr_code = generate_qr_code(json.dumps(qr_data))
+        
+        return jsonify({
+            "success": True,
+            "qr_code": qr_code,
+            "item": serialize_doc(item)
+        })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
 
 @app.route('/api/items/search', methods=['GET'])
+@require_auth
 def search_items():
-    """Search items by name"""
+    """Search items by name - Requires authentication"""
     try:
-        search_term = request.args.get('q', '')
-        items = list(items_collection.find({"item_name": {"$regex": search_term, "$options": "i"}}))
+        search_term = request.args.get('q', '').strip()
+        if not search_term:
+            return jsonify({"success": True, "items": []})
+        
+        # Sanitize search term to prevent NoSQL injection
+        search_term = search_term.replace('$', '').replace('{', '').replace('}', '')
+        
+        user_email = request.user_email
+        items = list(items_collection.find({
+            "item_name": {"$regex": search_term, "$options": "i"},
+            "user_email": user_email
+        }))
         serialized_items = [serialize_doc(item) for item in items]
         return jsonify({"success": True, "items": serialized_items})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# Customer Management Endpoints
+@app.route('/api/customers', methods=['GET'])
+@require_auth
+def get_customers():
+    """Get all customers for current user - Requires authentication"""
+    try:
+        user_email = request.user_email
+        customers = list(customers_collection.find({"user_email": user_email}).sort("created_at", -1))
+        serialized_customers = [serialize_doc(customer) for customer in customers]
+        return jsonify({"success": True, "customers": serialized_customers})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/customers', methods=['POST'])
+@require_auth
+def add_customer():
+    """Add new customer - Requires authentication"""
+    try:
+        data = request.json
+        user_email = request.user_email
+        
+        # Input validation
+        customer_name = data.get('customer_name', '').strip()
+        customer_phone = data.get('customer_phone', '').strip()
+        customer_email = data.get('customer_email', '').strip()
+        customer_address = data.get('customer_address', '').strip()
+        
+        if not customer_name:
+            return jsonify({"success": False, "error": "Customer name is required"}), 400
+        if not customer_phone:
+            return jsonify({"success": False, "error": "Customer phone is required"}), 400
+        if not customer_email:
+            return jsonify({"success": False, "error": "Customer email is required"}), 400
+        if not customer_address:
+            return jsonify({"success": False, "error": "Customer address is required"}), 400
+        
+        # Check if customer with same phone already exists for this user
+        existing_customer = customers_collection.find_one({
+            "customer_phone": customer_phone,
+            "user_email": user_email
+        })
+        
+        if existing_customer:
+            return jsonify({"success": False, "error": "Customer with this phone number already exists"}), 400
+        
+        # Create customer document
+        customer = {
+            "customer_name": customer_name,
+            "customer_phone": customer_phone,
+            "customer_email": customer_email,
+            "customer_address": customer_address,
+            "user_email": user_email,
+            "total_purchases": 0,
+            "total_spent": 0,
+            "created_at": datetime.now(),
+            "updated_at": datetime.now()
+        }
+        
+        result = customers_collection.insert_one(customer)
+        customer['_id'] = result.inserted_id
+        
+        return jsonify({
+            "success": True,
+            "message": "Customer added successfully",
+            "customer": serialize_doc(customer)
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+
+@app.route('/api/customers/<customer_id>', methods=['PUT'])
+@require_auth
+def update_customer(customer_id):
+    """Update customer information - Requires authentication"""
+    try:
+        # Validate ObjectId
+        try:
+            ObjectId(customer_id)
+        except:
+            return jsonify({"success": False, "error": "Invalid customer ID"}), 400
+        
+        user_email = request.user_email
+        customer = customers_collection.find_one({"_id": ObjectId(customer_id), "user_email": user_email})
+        
+        if not customer:
+            return jsonify({"success": False, "error": "Customer not found or access denied"}), 404
+        
+        data = request.json
+        update_data = {}
+        
+        if 'customer_name' in data:
+            customer_name = data['customer_name'].strip()
+            if customer_name:
+                update_data['customer_name'] = customer_name
+        
+        if 'customer_phone' in data:
+            customer_phone = data['customer_phone'].strip()
+            if customer_phone:
+                # Check if phone number is already used by another customer
+                existing = customers_collection.find_one({
+                    "customer_phone": customer_phone,
+                    "user_email": user_email,
+                    "_id": {"$ne": ObjectId(customer_id)}
+                })
+                if existing:
+                    return jsonify({"success": False, "error": "Phone number already in use by another customer"}), 400
+                update_data['customer_phone'] = customer_phone
+        
+        if 'customer_email' in data:
+            update_data['customer_email'] = data['customer_email'].strip() if data['customer_email'] else None
+        
+        if 'customer_address' in data:
+            update_data['customer_address'] = data['customer_address'].strip() if data['customer_address'] else None
+        
+        if update_data:
+            update_data['updated_at'] = datetime.now()
+            customers_collection.update_one(
+                {"_id": ObjectId(customer_id)},
+                {"$set": update_data}
+            )
+        
+        updated_customer = customers_collection.find_one({"_id": ObjectId(customer_id)})
+        return jsonify({
+            "success": True,
+            "message": "Customer updated successfully",
+            "customer": serialize_doc(updated_customer)
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+
+@app.route('/api/customers/<customer_id>', methods=['DELETE'])
+@require_auth
+def delete_customer(customer_id):
+    """Delete customer - Requires authentication"""
+    try:
+        # Validate ObjectId
+        try:
+            ObjectId(customer_id)
+        except:
+            return jsonify({"success": False, "error": "Invalid customer ID"}), 400
+        
+        user_email = request.user_email
+        result = customers_collection.delete_one({"_id": ObjectId(customer_id), "user_email": user_email})
+        
+        if result.deleted_count > 0:
+            return jsonify({"success": True, "message": "Customer deleted successfully"})
+        else:
+            return jsonify({"success": False, "error": "Customer not found or access denied"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+
+@app.route('/api/customers/search', methods=['GET'])
+@require_auth
+def search_customers():
+    """Search customers by name or phone - Requires authentication"""
+    try:
+        search_term = request.args.get('q', '').strip()
+        if not search_term:
+            return jsonify({"success": True, "customers": []})
+        
+        # Sanitize search term
+        search_term = search_term.replace('$', '').replace('{', '').replace('}', '')
+        
+        user_email = request.user_email
+        customers = list(customers_collection.find({
+            "$or": [
+                {"customer_name": {"$regex": search_term, "$options": "i"}},
+                {"customer_phone": {"$regex": search_term, "$options": "i"}}
+            ],
+            "user_email": user_email
+        }))
+        serialized_customers = [serialize_doc(customer) for customer in customers]
+        return jsonify({"success": True, "customers": serialized_customers})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -584,33 +957,98 @@ def generate_next_invoice_id():
         return 1
 
 def calculate_totals(items, tax_rate=0.0, discount_rate=0.0):
-    """Calculate invoice totals using provided rates (in percentages)."""
+    """Calculate invoice totals using provided rates (in percentages) with custom rounding."""
     subtotal = sum(item["quantity"] * item["price"] for item in items)
     tax = subtotal * (tax_rate / 100)
     discount = subtotal * (discount_rate / 100)
-    total = subtotal + tax - discount
+    calculated_total = subtotal + tax - discount
+    
+    # Apply custom rounding logic
+    rounded = round(calculated_total)
+    last_digit = rounded % 10
+    
+    if 0 <= last_digit <= 4:
+        # Round down to nearest 10
+        total = (rounded // 10) * 10
+    elif last_digit == 5:
+        # Keep as is (ends with 5)
+        total = rounded
+    else:  # 6 <= last_digit <= 9
+        # Round up to nearest 10
+        total = ((rounded // 10) + 1) * 10
+    
     return subtotal, tax, discount, total
 
 @app.route('/api/invoices', methods=['POST'])
+@require_auth
 def create_invoice():
-    """Create new invoice"""
+    """Create new invoice with tax rate and discount rate - Requires authentication"""
     try:
         data = request.json
-        customer_name = data.get('customer_name')
-        customer_address = data.get('customer_address')
-        customer_number = data.get('customer_number')
-        items = data.get('items', [])
-        tax_rate = float(data.get('tax_rate', 0))
-        discount_rate = float(data.get('discount_rate', 0))
         
-        if not items:
+        # Input validation
+        customer_name = data.get('customer_name', '').strip()
+        if not customer_name:
+            return jsonify({"success": False, "error": "Customer name is required"}), 400
+        
+        customer_address = data.get('customer_address', '').strip()
+        if not customer_address:
+            return jsonify({"success": False, "error": "Customer address is required"}), 400
+        
+        customer_number = data.get('customer_number', '').strip()
+        if not customer_number:
+            return jsonify({"success": False, "error": "Customer phone number is required"}), 400
+        
+        customer_email = data.get('customer_email', '').strip()
+        items = data.get('items', [])
+        
+        # Validate tax and discount rates
+        try:
+            tax_rate = float(data.get('tax_rate', 0))
+            if tax_rate < 0 or tax_rate > 100:
+                return jsonify({"success": False, "error": "Tax rate must be between 0 and 100"}), 400
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Invalid tax rate"}), 400
+        
+        try:
+            discount_rate = float(data.get('discount_rate', 0))
+            if discount_rate < 0 or discount_rate > 100:
+                return jsonify({"success": False, "error": "Discount rate must be between 0 and 100"}), 400
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Invalid discount rate"}), 400
+        
+        send_email = data.get('send_email', False)
+        payment_method = data.get('payment_method', 'cash')
+        notes = data.get('notes', '').strip()
+        
+        if not items or len(items) == 0:
             return jsonify({"success": False, "error": "No items provided"}), 400
         
-        # Validate and update stock
+        # Validate items and check ownership
+        user_email = request.user_email
         for item in items:
-            db_item = items_collection.find_one({"_id": ObjectId(item['item_id'])})
+            # Validate item structure
+            if 'item_id' not in item or 'quantity' not in item:
+                return jsonify({"success": False, "error": "Invalid item format"}), 400
+            
+            # Validate ObjectId
+            try:
+                ObjectId(item['item_id'])
+            except:
+                return jsonify({"success": False, "error": f"Invalid item ID: {item['item_id']}"}), 400
+            
+            # Validate quantity
+            try:
+                quantity = int(item['quantity'])
+                if quantity <= 0:
+                    return jsonify({"success": False, "error": "Item quantity must be positive"}), 400
+            except (TypeError, ValueError):
+                return jsonify({"success": False, "error": "Invalid quantity format"}), 400
+            
+            # Check item exists and belongs to user
+            db_item = items_collection.find_one({"_id": ObjectId(item['item_id']), "user_email": user_email})
             if not db_item:
-                return jsonify({"success": False, "error": f"Item not found: {item['item_id']}"}), 400
+                return jsonify({"success": False, "error": f"Item not found or access denied: {item['item_id']}"}), 400
             
             if item['quantity'] > db_item['stock']:
                 return jsonify({
@@ -634,6 +1072,7 @@ def create_invoice():
             "customer_name": customer_name,
             "customer_address": customer_address,
             "customer_number": customer_number,
+            "customer_email": customer_email,
             "items": items,
             "subtotal": subtotal,
             "tax": tax,
@@ -641,6 +1080,9 @@ def create_invoice():
             "tax_rate": tax_rate,
             "discount_rate": discount_rate,
             "total": total,
+            "payment_method": payment_method,
+            "notes": notes,
+            "user_email": user_email,
             "order_date": datetime.now(),
             "created_at": datetime.now()
         }
@@ -656,45 +1098,191 @@ def create_invoice():
             )
         
         invoice_doc["_id"] = result.inserted_id
+        
+        # Send email if customer email provided and send_email is True
+        email_sent = False
+        if customer_email and send_email and SMTP_EMAIL and SMTP_PASSWORD:
+            try:
+                # Get session token to fetch shop details
+                session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
+                shop_info = auth_collection.find_one({"session_token": session_token})
+                
+                shop_name = shop_info.get('shop_name', 'Shop') if shop_info else 'Shop'
+                shop_address = shop_info.get('shop_address', '') if shop_info else ''
+                shop_phone = shop_info.get('shop_phone', '') if shop_info else ''
+                
+                # Prepare email
+                msg = MIMEMultipart('alternative')
+                msg['Subject'] = f'📄 Invoice #{invoice_id} from {shop_name} | Invoice Management System'
+                msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
+                msg['To'] = customer_email
+                
+                # Create items HTML
+                items_html = ""
+                for item in items:
+                    items_html += f"""
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">{item['name']}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item['quantity']} {item.get('unit', 'pcs')}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['price']:.2f}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['quantity'] * item['price']:.2f}</td>
+                    </tr>
+                    """
+                
+                html = f"""
+                <html>
+                  <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+                    <div style="max-width: 700px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                      
+                      <!-- App Branding -->
+                      <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #ff9933 0%, #138808 100%); border-radius: 8px;">
+                        <h3 style="color: white; margin: 0; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">📊 Invoice Management System</h3>
+                        <p style="color: #f0f0f0; margin: 5px 0 0 0; font-size: 12px;">Professional Invoice Generation & Management</p>
+                      </div>
+                      
+                      <!-- Shop Details -->
+                      <div style="border-bottom: 3px solid #138808; padding-bottom: 20px; margin-bottom: 30px;">
+                        <h1 style="color: #138808; margin: 0; font-size: 28px;">🏪 {shop_name}</h1>
+                        <p style="margin: 5px 0; color: #666; font-size: 14px;">📍 {shop_address}</p>
+                        <p style="margin: 5px 0; color: #666; font-size: 14px;">📞 {shop_phone}</p>
+                      </div>
+                      
+                      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                        <h2 style="color: #138808; margin: 0 0 15px 0; font-size: 20px;">Invoice #{invoice_id}</h2>
+                        <p style="margin: 5px 0; color: #333;"><strong>Date:</strong> {invoice_doc['order_date'].strftime('%d %B %Y')}</p>
+                        <p style="margin: 5px 0; color: #333;"><strong>Customer:</strong> {customer_name}</p>
+                        <p style="margin: 5px 0; color: #333;"><strong>Address:</strong> {customer_address}</p>
+                        <p style="margin: 5px 0; color: #333;"><strong>Contact:</strong> {customer_number}</p>
+                      </div>
+                      
+                      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                        <thead>
+                          <tr style="background-color: #138808; color: white;">
+                            <th style="padding: 12px; text-align: left;">Item</th>
+                            <th style="padding: 12px; text-align: center;">Quantity</th>
+                            <th style="padding: 12px; text-align: right;">Price</th>
+                            <th style="padding: 12px; text-align: right;">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {items_html}
+                        </tbody>
+                      </table>
+                      
+                      <div style="border-top: 2px solid #138808; padding-top: 20px;">
+                        <table style="width: 100%; max-width: 300px; margin-left: auto;">
+                          <tr>
+                            <td style="padding: 8px; color: #666;">Subtotal:</td>
+                            <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {subtotal:.2f}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; color: #666;">Tax ({tax_rate}%):</td>
+                            <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {tax:.2f}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; color: #666;">Discount ({discount_rate}%):</td>
+                            <td style="padding: 8px; text-align: right; font-weight: bold; color: #d9534f;">- Rs {discount:.2f}</td>
+                          </tr>
+                          <tr style="border-top: 2px solid #138808;">
+                            <td style="padding: 12px; font-size: 18px; font-weight: bold; color: #138808;">Total Amount:</td>
+                            <td style="padding: 12px; text-align: right; font-size: 20px; font-weight: bold; color: #138808;">Rs {total:.2f}</td>
+                          </tr>
+                        </table>
+                      </div>
+                      
+                      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
+                        <p style="margin: 5px 0;">🙏 Thank you for your business!</p>
+                        <p style="margin: 10px 0;">This invoice was generated by <strong style="color: #138808;">Invoice Management System</strong></p>
+                        <p style="margin: 10px 0;">This is an automated email from <strong>{shop_name}</strong>. Please do not reply.</p>
+                        <p style="margin: 10px 0;">📧 For any queries, contact us at {shop_phone}</p>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                          <p style="margin: 5px 0; color: #bbb; font-size: 11px;">Powered by Invoice Management System | Professional Business Solutions</p>
+                        </div>
+                      </div>
+                    </div>
+                  </body>
+                </html>
+                """
+                
+                part = MIMEText(html, 'html')
+                msg.attach(part)
+                
+                # Send email
+                with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                    server.starttls()
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.send_message(msg)
+                
+                email_sent = True
+                print(f"✅ Invoice email sent successfully to {customer_email}")
+                print(f"   Shop: {shop_name}")
+                print(f"   Invoice ID: {invoice_id}")
+                
+            except Exception as email_error:
+                print(f"❌ Failed to send invoice email to {customer_email}")
+                print(f"   Error: {email_error}")
+                print(f"   Shop: {shop_name}")
+                print(f"   Invoice ID: {invoice_id}")
+                # Don't fail the whole request if email fails
+        
         return jsonify({
             "success": True,
-            "message": "Invoice created successfully",
-            "invoice": serialize_doc(invoice_doc)
+            "message": "Invoice created successfully" + (" and email sent!" if email_sent else ""),
+            "invoice": serialize_doc(invoice_doc),
+            "email_sent": email_sent
         })
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
 
 @app.route('/api/invoices', methods=['GET'])
+@require_auth
 def get_invoices():
-    """Get all invoices"""
+    """Get all invoices - Requires authentication"""
     try:
-        invoices = list(invoices_collection.find().sort("invoice_id", -1))
+        user_email = request.user_email
+        invoices = list(invoices_collection.find({"user_email": user_email}).sort("invoice_id", -1))
         serialized_invoices = [serialize_doc(invoice) for invoice in invoices]
         return jsonify({"success": True, "invoices": serialized_invoices})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/invoices/<int:invoice_id>', methods=['GET'])
+@require_auth
 def get_invoice(invoice_id):
-    """Get specific invoice"""
+    """Get specific invoice - Requires authentication"""
     try:
-        invoice = invoices_collection.find_one({"invoice_id": invoice_id})
+        # Validate invoice_id
+        if invoice_id <= 0:
+            return jsonify({"success": False, "error": "Invalid invoice ID"}), 400
+        
+        user_email = request.user_email
+        invoice = invoices_collection.find_one({"invoice_id": invoice_id, "user_email": user_email})
         if invoice:
             return jsonify({"success": True, "invoice": serialize_doc(invoice)})
         else:
-            return jsonify({"success": False, "error": "Invoice not found"}), 404
+            return jsonify({"success": False, "error": "Invoice not found or access denied"}), 404
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/invoices/<int:invoice_id>/pdf', methods=['GET'])
+@require_auth
 def generate_invoice_pdf(invoice_id):
-    """Generate PDF for invoice"""
+    """Generate PDF for invoice - Requires authentication"""
     try:
+        # Validate invoice_id
+        if invoice_id <= 0:
+            return jsonify({"success": False, "error": "Invalid invoice ID"}), 400
+        
         # Get session token from header or query param
         session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
         if not session_token:
             session_token = request.args.get('session_token', '')
+        
+        # Verify session again for PDF access
+        auth_doc = verify_session_token(session_token)
+        if not auth_doc:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
         
         # Get shop details from auth
         shop_info = auth_collection.find_one({"session_token": session_token})
@@ -705,9 +1293,10 @@ def generate_invoice_pdf(invoice_id):
         shop_phone = shop_info.get('shop_phone', "") if shop_info else ""
         owner_email = shop_info.get('email', "") if shop_info else ""
         
-        invoice = invoices_collection.find_one({"invoice_id": invoice_id})
+        # Check invoice exists and belongs to user
+        invoice = invoices_collection.find_one({"invoice_id": invoice_id, "user_email": owner_email})
         if not invoice:
-            return jsonify({"success": False, "error": "Invoice not found"}), 404
+            return jsonify({"success": False, "error": "Invoice not found or access denied"}), 404
         
         # Create temporary file
         temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
@@ -808,23 +1397,30 @@ def generate_invoice_pdf(invoice_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/stats', methods=['GET'])
+@require_auth
 def get_stats():
-    """Get sales statistics"""
+    """Get sales statistics - Requires authentication"""
     try:
-        total_invoices = invoices_collection.count_documents({})
+        user_email = request.user_email
+        
+        # Filter by user_email
+        total_invoices = invoices_collection.count_documents({"user_email": user_email})
         total_revenue = list(invoices_collection.aggregate([
+            {"$match": {"user_email": user_email}},
             {"$group": {"_id": None, "total": {"$sum": "$total"}}}
         ]))
         
-        # Top customers
+        # Top customers for this user
         top_customers = list(invoices_collection.aggregate([
+            {"$match": {"user_email": user_email}},
             {"$group": {"_id": "$customer_name", "total_spent": {"$sum": "$total"}, "invoice_count": {"$sum": 1}}},
             {"$sort": {"total_spent": -1}},
             {"$limit": 5}
         ]))
         
-        # Daily sales for the last 7 days
+        # Daily sales for the last 7 days for this user
         daily_sales = list(invoices_collection.aggregate([
+            {"$match": {"user_email": user_email}},
             {
                 "$group": {
                     "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$order_date"}},
@@ -843,6 +1439,62 @@ def get_stats():
                 "top_customers": top_customers,
                 "daily_sales": daily_sales
             }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/export/all-data', methods=['GET'])
+@require_auth
+def export_all_data():
+    """Export all shop data (items, customers, invoices) as JSON - Requires authentication"""
+    try:
+        user_email = request.user_email
+        
+        # Get user's shop information
+        user_session = auth_collection.find_one({"email": user_email})
+        shop_info = {
+            "shop_name": user_session.get("shop_name", "Unknown Shop") if user_session else "Unknown Shop",
+            "shop_address": user_session.get("shop_address", "") if user_session else "",
+            "shop_phone": user_session.get("shop_phone", "") if user_session else "",
+            "export_date": datetime.now().isoformat()
+        }
+        
+        # Get all items for this user
+        items = list(items_collection.find({"user_email": user_email}))
+        serialized_items = [serialize_doc(item) for item in items]
+        
+        # Get all customers for this user
+        customers = list(customers_collection.find({"user_email": user_email}))
+        serialized_customers = [serialize_doc(customer) for customer in customers]
+        
+        # Get all invoices for this user
+        invoices = list(invoices_collection.find({"user_email": user_email}))
+        serialized_invoices = [serialize_doc(invoice) for invoice in invoices]
+        
+        # Calculate statistics
+        total_items = len(serialized_items)
+        total_stock_value = sum(item.get('item_price', 0) * item.get('stock', 0) for item in serialized_items)
+        total_customers = len(serialized_customers)
+        total_invoices = len(serialized_invoices)
+        total_revenue = sum(invoice.get('total', 0) for invoice in serialized_invoices)
+        
+        export_data = {
+            "shop_info": shop_info,
+            "summary": {
+                "total_items": total_items,
+                "total_stock_value": round(total_stock_value, 2),
+                "total_customers": total_customers,
+                "total_invoices": total_invoices,
+                "total_revenue": round(total_revenue, 2)
+            },
+            "items": serialized_items,
+            "customers": serialized_customers,
+            "invoices": serialized_invoices
+        }
+        
+        return jsonify({
+            "success": True,
+            "data": export_data
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

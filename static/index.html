@@ -13,16 +13,9 @@
 
         body {
             font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #ff9933 0%, #138808 25%, #ffffff 50%, #138808 75%, #ff9933 100%);
-            background-size: 400% 400%;
-            animation: indianFlag 10s ease-in-out infinite;
+            background: #ffffff;
             min-height: 100vh;
             color: #2c3e50;
-        }
-
-        @keyframes indianFlag {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
         }
 
         .container {
@@ -150,13 +143,19 @@
 
         .card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            padding: 35px;
-            border-radius: 20px;
+            padding: 30px;
+            border-radius: 16px;
             margin-bottom: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
             border: 1px solid #e9ecef;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
         }
 
         .card::before {
@@ -173,10 +172,21 @@
             color: #138808;
             margin-bottom: 25px;
             font-size: 1.8em;
-            font-weight: bold;
-            border-bottom: 2px solid #ff9933;
-            padding-bottom: 10px;
+            font-weight: 700;
+            border-bottom: 3px solid #ff9933;
+            padding-bottom: 12px;
             display: inline-block;
+            position: relative;
+        }
+        
+        .card h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background: #138808;
         }
 
         .form-group {
@@ -217,29 +227,54 @@
         }
 
         .btn {
-            padding: 14px 28px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 1.1em;
+            font-size: 0.95em;
             font-weight: 600;
-            transition: all 0.4s ease;
-            margin-right: 12px;
-            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 4px;
             position: relative;
             overflow: hidden;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            min-width: 120px;
+            letter-spacing: 0.5px;
+            min-width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+                margin: 2px 0;
+            }
         }
         
         @media (max-width: 480px) {
             .btn {
-                padding: 12px 20px;
-                font-size: 1em;
-                margin-right: 8px;
-                margin-bottom: 8px;
-                min-width: 100px;
+                padding: 10px 16px;
+                font-size: 0.85em;
+                margin: 2px;
             }
         }
 
@@ -264,45 +299,45 @@
         .btn-primary {
             background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+            background: linear-gradient(135deg, #0069d9 0%, #004494 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
         }
 
         .btn-success {
             background: linear-gradient(135deg, #138808 0%, #28a745 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(19, 136, 8, 0.3);
         }
 
         .btn-success:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(19, 136, 8, 0.4);
+            background: linear-gradient(135deg, #0f6606 0%, #218838 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(19, 136, 8, 0.4);
         }
 
         .btn-danger {
             background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
         }
 
         .btn-danger:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
         }
 
         .btn-warning {
             background: linear-gradient(135deg, #ff9933 0%, #e67e22 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(255, 153, 51, 0.3);
         }
 
         .btn-warning:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(255, 153, 51, 0.4);
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 153, 51, 0.4);
         }
 
         .table-container {
@@ -312,26 +347,45 @@
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             background: white;
-            border-radius: 5px;
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
 
         th, td {
-            padding: 15px;
+            padding: 16px 20px;
             text-align: left;
-            border-bottom: 1px solid #ecf0f1;
+            border-bottom: 1px solid #f0f0f0;
         }
 
         th {
-            background: #34495e;
+            background: linear-gradient(135deg, #138808 0%, #28a745 100%);
             color: white;
-            font-weight: bold;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.95em;
+        }
+        
+        th:last-child, td:last-child {
+            text-align: center;
         }
 
-        tr:hover {
-            background: rgba(52, 152, 219, 0.05);
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(135deg, rgba(19, 136, 8, 0.05) 0%, rgba(255, 153, 51, 0.05) 100%);
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
         }
 
         .alert {
@@ -355,21 +409,58 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 35px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .stat-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            padding: 30px;
-            border-radius: 20px;
+            padding: 25px;
+            border-radius: 16px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-            border: 1px solid #e9ecef;
-            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #ff9933, #138808);
+            transition: left 0.5s ease;
+        }
+        
+        .stat-card:hover::before {
+            left: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(19, 136, 8, 0.2);
+            border-color: #138808;
+        }
+
+        .stat-card h3 {
+            color: #138808;
+            font-size: 2.5em;
+            margin: 15px 0;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-card p {
+            color: #ff9933;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .stat-card::before {
@@ -445,16 +536,30 @@
 
         .search-bar {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .search-bar input {
             flex: 1;
-            padding: 12px;
-            border: 2px solid #ecf0f1;
-            border-radius: 5px;
+            min-width: 250px;
+            padding: 14px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
             font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .search-bar input:focus {
+            outline: none;
+            border-color: #138808;
+            box-shadow: 0 0 0 3px rgba(19, 136, 8, 0.1);
+        }
+        
+        .search-bar button {
+            min-width: 120px;
         }
 
         @media (max-width: 768px) {
@@ -480,12 +585,23 @@
 
         .empty-state {
             text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
+            padding: 60px 40px;
+            color: #6c757d;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
         }
 
         .empty-state h3 {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            color: #138808;
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        
+        .empty-state p {
+            font-size: 1.1em;
+            color: #6c757d;
         }
 
         /* Enhanced Popup Modal Styles */
@@ -505,22 +621,42 @@
         }
         
         .popup-modal {
-            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 50%, #ffffff 100%);
+            background: #ffffff;
             padding: 35px 40px;
             border-radius: 20px;
             box-shadow: 
                 0 25px 80px rgba(0, 0, 0, 0.15),
                 0 0 0 1px rgba(255, 255, 255, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.9);
-            max-width: 450px;
+            max-width: 600px;
             width: 95%;
+            max-height: 85vh;
             text-align: center;
             transform: scale(0.8) translateY(30px);
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             border: 2px solid transparent;
             background-clip: padding-box;
             position: relative;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .popup-modal::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .popup-modal::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .popup-modal::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #ff9933, #138808);
+            border-radius: 10px;
+        }
+        
+        .popup-modal::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #138808, #ff9933);
         }
         
         .popup-modal::before {
@@ -790,6 +926,111 @@
                 font-size: 1em;
             }
         }
+        
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            animation: slideInRight 0.4s ease-out;
+            max-width: 400px;
+            border-left: 4px solid #138808;
+        }
+        
+        .notification.success {
+            border-left-color: #138808;
+        }
+        
+        .notification.error {
+            border-left-color: #dc3545;
+        }
+        
+        .notification.warning {
+            border-left-color: #ff9933;
+        }
+        
+        .notification-icon {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 3px;
+            color: #2c3e50;
+        }
+        
+        .notification-message {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 1.3em;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-close:hover {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        .notification.hiding {
+            animation: slideOutRight 0.4s ease-out forwards;
+        }
+        
+        @media (max-width: 768px) {
+            .notification {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -802,12 +1043,20 @@
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showTab('dashboard', this)">📊 Dashboard</button>
             <button class="nav-tab" onclick="showTab('items', this)">📦 Items</button>
+            <button class="nav-tab" onclick="showTab('customers', this)">👥 Customers</button>
             <button class="nav-tab" onclick="showTab('invoice', this)">🧾 Create Invoice</button>
             <button class="nav-tab" onclick="showTab('invoices', this)">📋 View Invoices</button>
         </div>
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #138808;" >📊 Business Overview</h2>
+                <button onclick="exportAllData()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                    📥 Export All Data
+                </button>
+            </div>
+            
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3 id="totalInvoices">-</h3>
@@ -820,6 +1069,10 @@
                 <div class="stat-card">
                     <h3 id="totalItems">-</h3>
                     <p>Items in Stock</p>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="showLowStockItems()">
+                    <h3 id="lowStockItems" style="color: #dc3545;">-</h3>
+                    <p>⚠️ Low Stock Alert</p>
                 </div>
             </div>
 
@@ -884,10 +1137,63 @@
             </div>
         </div>
 
+        <!-- Customers Tab -->
+        <div id="customers" class="tab-content">
+            <div class="card">
+                <h2>➕ Add New Customer</h2>
+                <form id="addCustomerForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                        <div class="form-group">
+                            <label>👤 Customer Name</label>
+                            <input type="text" id="newCustomerName" placeholder="Enter full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>📱 Phone Number</label>
+                            <input type="tel" id="newCustomerPhone" placeholder="+91 XXXXX XXXXX" required>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                        <div class="form-group">
+                            <label>📧 Email</label>
+                            <input type="email" id="newCustomerEmail" placeholder="customer@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>🏠 Address</label>
+                            <textarea id="newCustomerAddress" rows="1" placeholder="Enter complete address" required style="padding: 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 1.1em; background: #f8f9fa; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Customer</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>👥 Customer Directory</h2>
+                <div class="search-bar">
+                    <input type="text" id="customerSearch" placeholder="Search customers by name or phone...">
+                    <button onclick="searchCustomers()" class="btn btn-primary">Search</button>
+                    <button onclick="loadCustomers()" class="btn btn-warning">Show All</button>
+                </div>
+                <div id="customersTable" class="loading">Loading customers...</div>
+            </div>
+        </div>
+
         <!-- Create Invoice Tab -->
         <div id="invoice" class="tab-content">
             <div class="card">
                 <h2>👤 Customer Information</h2>
+                
+                <!-- Customer Selection Dropdown -->
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label style="font-size: 1.1em; font-weight: bold;">🔍 Select Existing Customer</label>
+                    <select id="customerSelect" style="padding: 15px; border: 2px solid #138808; border-radius: 10px; font-size: 1.1em; background: #f8f9fa; width: 100%;">
+                        <option value="">-- Select a customer or enter new details below --</option>
+                    </select>
+                </div>
+                
+                <div style="text-align: center; margin: 20px 0; color: #666; font-weight: bold;">
+                    OR Enter New Customer Details
+                </div>
+                
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
                     <div class="form-group">
                         <label>👤 Customer Name</label>
@@ -899,6 +1205,10 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label>📧 Customer Email</label>
+                    <input type="email" id="customerEmail" placeholder="customer@example.com (for sending invoice)" required>
+                </div>
+                <div class="form-group">
                     <label>🏠 Customer Address</label>
                     <textarea id="customerAddress" rows="3" placeholder="Enter complete address with city and state" required></textarea>
                 </div>
@@ -906,6 +1216,15 @@
 
             <div class="card">
                 <h2>🛒 Add Items to Invoice</h2>
+                
+                <!-- QR Scanner Button -->
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <button onclick="openQRScanner()" class="btn btn-success" style="font-size: 1.2em; padding: 15px 30px;">
+                        📷 Scan Item QR Code
+                    </button>
+                    <p style="color: #666; margin-top: 10px; font-size: 0.9em;">Or manually select item below</p>
+                </div>
+                
                 <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 20px; align-items: end; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 15px; border: 2px dashed #138808;">
                     <div class="form-group">
                         <label>🛍️ Select Item</label>
@@ -956,6 +1275,33 @@
                     </div>
                 </div>
 
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div style="background: #e7f3ff; padding: 20px; border-radius: 10px; border: 2px solid #007bff;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="sendEmailCheckbox" style="width: 20px; height: 20px; cursor: pointer;">
+                            <span style="font-size: 1.1em; font-weight: 600; color: #007bff;">📧 Send invoice to customer's email</span>
+                        </label>
+                        <p style="margin: 10px 0 0 30px; color: #666; font-size: 0.9em;">
+                            ✉️ Customer will receive a detailed invoice via email
+                        </p>
+                    </div>
+                    <div style="background: #d4edda; padding: 20px; border-radius: 10px; border: 2px solid #28a745;">
+                        <label style="font-size: 1.1em; font-weight: 600; color: #28a745; margin-bottom: 10px; display: block;">💳 Payment Method</label>
+                        <select id="paymentMethod" style="width: 100%; padding: 12px; border: 2px solid #28a745; border-radius: 8px; font-size: 1em; background: white;">
+                            <option value="cash">💵 Cash</option>
+                            <option value="card">💳 Card</option>
+                            <option value="upi">📱 UPI</option>
+                            <option value="bank_transfer">🏦 Bank Transfer</option>
+                            <option value="cheque">📝 Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>📝 Additional Notes (Optional)</label>
+                    <textarea id="invoiceNotes" rows="2" placeholder="Add any special instructions or notes for this invoice..." style="padding: 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 1em; background: #f8f9fa; resize: vertical; width: 100%;"></textarea>
+                </div>
+
                 <button onclick="generateInvoice()" class="btn btn-primary" style="margin-top: 20px;" disabled id="generateBtn">Generate Invoice</button>
             </div>
         </div>
@@ -988,12 +1334,65 @@
             </div>
         </div>
     </div>
+    
+    <!-- QR Code Display Modal -->
+    <div id="qrModal" class="popup-overlay" style="display:none;">
+        <div class="popup-modal" style="max-width: 500px;">
+            <h3 id="qrModalTitle">📱 Item QR Code</h3>
+            <div id="qrModalContent" style="text-align: center; padding: 20px;">
+                <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 300px; border: 3px solid #138808; border-radius: 10px; padding: 10px; background: white;">
+                <p id="qrItemInfo" style="margin-top: 15px; font-weight: bold; color: #138808;"></p>
+                <p style="color: #666; margin-top: 10px; font-size: 0.9em;">Scan this QR code to quickly add item to invoice</p>
+            </div>
+            <div class="popup-buttons">
+                <button class="popup-btn ok" onclick="printQR()">🖨️ Print QR</button>
+                <button class="popup-btn cancel" onclick="closeQRModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- QR Scanner Modal -->
+    <div id="qrScannerModal" class="popup-overlay" style="display:none;">
+        <div class="popup-modal" style="max-width: 600px;">
+            <h3>📷 Scan Item QR Code</h3>
+            <div style="padding: 20px;">
+                <video id="qrVideo" style="width: 100%; max-width: 500px; border: 3px solid #138808; border-radius: 10px;"></video>
+                <canvas id="qrCanvas" style="display:none;"></canvas>
+                <p style="margin-top: 15px; text-align: center; color: #666;">Position the QR code within the camera frame</p>
+            </div>
+            <div class="popup-buttons">
+                <button class="popup-btn cancel" onclick="closeQRScanner()">Close Scanner</button>
+            </div>
+        </div>
+    </div>
 
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         const API_BASE = 'http://127.0.0.1:5000';
         let currentItems = [];
         let invoiceItems = [];
         let popupCallback = null;
+        
+        // Helper function to get auth headers
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('session_token')}`
+            };
+        }
+        
+        // Helper function to handle auth errors
+        function handleAuthError(data) {
+            if (data.error && (data.error.includes('Unauthorized') || data.error.includes('login'))) {
+                showPopup('Session Expired ⚠️', 'Your session has expired. Please login again.', 'alert');
+                setTimeout(() => {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                }, 2000);
+                return true;
+            }
+            return false;
+        }
         
         // Check authentication on page load
         async function checkAuth() {
@@ -1091,7 +1490,7 @@
         // Popup Functions
         function showPopup(title, message, type = 'confirm', callback = null) {
             document.getElementById('popupTitle').textContent = title;
-            document.getElementById('popupMessage').textContent = message;
+            document.getElementById('popupMessage').innerHTML = message;
             popupCallback = callback;
             
             const buttonsDiv = document.getElementById('popupButtons');
@@ -1206,6 +1605,37 @@
                 hidePopup();
             }
         }
+        
+        // Notification System
+        function showNotification(title, message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const iconMap = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            };
+            
+            notification.innerHTML = `
+                <div class="notification-icon">${iconMap[type] || '✅'}</div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                notification.classList.add('hiding');
+                setTimeout(() => {
+                    notification.remove();
+                }, 400);
+            }, 4000);
+        }
 
         // Utility functions
         function showAlert(message, type = 'success') {
@@ -1255,7 +1685,10 @@
             } else if (tabName === 'items') {
                 loadItems();
                 loadItemsForInvoice();
+            } else if (tabName === 'customers') {
+                loadCustomers();
             } else if (tabName === 'invoice') {
+                loadCustomersForInvoice();
                 loadItemsForInvoice();
                 clearInvoiceForm();
             } else if (tabName === 'invoices') {
@@ -1267,12 +1700,14 @@
         async function loadDashboard() {
             try {
                 const [statsResponse, itemsResponse] = await Promise.all([
-                    fetch(`${API_BASE}/api/stats`),
-                    fetch(`${API_BASE}/api/items`)
+                    fetch(`${API_BASE}/api/stats`, { headers: getAuthHeaders() }),
+                    fetch(`${API_BASE}/api/items`, { headers: getAuthHeaders() })
                 ]);
 
                 const statsData = await statsResponse.json();
                 const itemsData = await itemsResponse.json();
+
+                if (handleAuthError(statsData) || handleAuthError(itemsData)) return;
 
                 if (statsData.success) {
                     const stats = statsData.stats;
@@ -1308,6 +1743,13 @@
 
                 if (itemsData.success) {
                     document.getElementById('totalItems').textContent = itemsData.items.length;
+                    
+                    // Calculate low stock items (stock <= 10)
+                    const lowStockCount = itemsData.items.filter(item => item.stock <= 10).length;
+                    document.getElementById('lowStockItems').textContent = lowStockCount;
+                    
+                    // Store low stock items for later use
+                    window.lowStockItems = itemsData.items.filter(item => item.stock <= 10);
                 }
 
             } catch (error) {
@@ -1316,11 +1758,126 @@
             }
         }
 
+        function showLowStockItems() {
+            if (!window.lowStockItems || window.lowStockItems.length === 0) {
+                showPopup('No Low Stock Items ✅', 'All items have sufficient stock!', 'alert');
+                return;
+            }
+            
+            const itemsList = window.lowStockItems
+                .map(item => `<div style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+                    <span><strong>${item.item_name}</strong></span>
+                    <span style="color: ${item.stock === 0 ? '#dc3545' : item.stock <= 5 ? '#ffc107' : '#ff9933'}; font-weight: bold;">
+                        ${item.stock} ${item.unit || 'pcs'} ${item.stock === 0 ? '(OUT OF STOCK!)' : ''}
+                    </span>
+                </div>`)
+                .join('');
+            
+            showPopup('⚠️ Low Stock Alert', `
+                <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                    <p style="margin-bottom: 15px; color: #666;">The following items need restocking:</p>
+                    ${itemsList}
+                </div>
+            `, 'alert');
+        }
+
+        async function exportAllData() {
+            try {
+                showNotification('Exporting...', 'Preparing your shop data for export', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/export/all-data`, {
+                    headers: getAuthHeaders()
+                });
+                
+                const result = await response.json();
+                
+                if (handleAuthError(result)) return;
+                
+                if (result.success) {
+                    const data = result.data;
+                    
+                    // Create a formatted JSON string
+                    const jsonString = JSON.stringify(data, null, 2);
+                    
+                    // Create blob and download
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    
+                    // Generate filename with shop name and date
+                    const shopName = data.shop_info.shop_name.replace(/[^a-z0-9]/gi, '_');
+                    const date = new Date().toISOString().split('T')[0];
+                    a.download = `${shopName}_Complete_Data_${date}.json`;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Show success with summary
+                    const summary = `
+                        <div style="text-align: left; line-height: 1.8;">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <strong style="font-size: 1.3em; color: #138808;">✅ Data Export Completed Successfully!</strong>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 12px; border-left: 5px solid #138808; margin-bottom: 15px;">
+                                <strong style="color: #138808; font-size: 1.1em;">📊 Export Summary</strong>
+                                <div style="margin-top: 15px; font-size: 1.05em;">
+                                    <div style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                                        📦 <strong>Total Items:</strong> <span style="color: #138808; font-weight: bold;">${data.summary.total_items}</span> items in inventory
+                                    </div>
+                                    <div style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                                        💰 <strong>Stock Value:</strong> <span style="color: #138808; font-weight: bold;">${formatCurrency(data.summary.total_stock_value)}</span>
+                                    </div>
+                                    <div style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                                        👥 <strong>Total Customers:</strong> <span style="color: #138808; font-weight: bold;">${data.summary.total_customers}</span> registered customers
+                                    </div>
+                                    <div style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                                        🧾 <strong>Total Invoices:</strong> <span style="color: #138808; font-weight: bold;">${data.summary.total_invoices}</span> invoices generated
+                                    </div>
+                                    <div style="padding: 8px 0;">
+                                        💵 <strong>Total Revenue:</strong> <span style="color: #138808; font-weight: bold; font-size: 1.15em;">${formatCurrency(data.summary.total_revenue)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; border-left: 5px solid #007bff; margin-bottom: 15px;">
+                                <strong style="color: #007bff; font-size: 1.05em;">📁 Downloaded File</strong>
+                                <div style="margin-top: 10px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #007bff;">
+                                    <code style="color: #333; font-size: 0.95em; word-break: break-all;">${shopName}_Complete_Data_${date}.json</code>
+                                </div>
+                            </div>
+                            
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 5px solid #ffc107;">
+                                <p style="color: #856404; font-size: 0.95em; margin: 0; line-height: 1.6;">
+                                    <strong>ℹ️ About This Export:</strong><br>
+                                    Your complete shop data has been successfully exported as a JSON file. This file contains all your items, customers, and invoice records. You can use this export for data backup, analysis, reporting, or migration to other systems.
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    showPopup('Data Export Complete! 📥', summary, 'alert');
+                } else {
+                    showPopup('Export Failed ❌', 'Error exporting data: ' + result.error, 'alert');
+                }
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showPopup('Export Failed ❌', 'Failed to export shop data. Please try again.', 'alert');
+            }
+        }
+
         // Items functions
         async function loadItems() {
             try {
-                const response = await fetch(`${API_BASE}/api/items`);
+                const response = await fetch(`${API_BASE}/api/items`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
+
+                if (handleAuthError(data)) return;
 
                 if (data.success) {
                     currentItems = data.items;
@@ -1357,14 +1914,17 @@
                         <tbody>
                             ${items.map(item => `
                                 <tr>
-                                    <td>${item.item_name}</td>
-                                    <td>${formatCurrency(item.item_price)}</td>
-                                    <td>${item.stock}</td>
-                                    <td>${item.unit || '-'}</td>
+                                    <td><strong>${item.item_name}</strong></td>
+                                    <td><strong style="color: #138808;">₹${item.item_price.toFixed(2)}</strong></td>
+                                    <td><span style="padding: 4px 12px; background: ${item.stock > 10 ? '#d4edda' : item.stock > 0 ? '#fff3cd' : '#f8d7da'}; color: ${item.stock > 10 ? '#155724' : item.stock > 0 ? '#856404' : '#721c24'}; border-radius: 6px; font-weight: 600;">${item.stock}</span></td>
+                                    <td><span style="padding: 4px 10px; background: #e9ecef; border-radius: 6px; font-weight: 500;">${item.unit || '-'}</span></td>
                                     <td>
-                                        <button onclick="updateItemStock('${item._id}', '${item.item_name}')" class="btn btn-warning">Update Stock</button>
-                                        <button onclick="updateItemPrice('${item._id}', '${item.item_name}')" class="btn btn-primary">Update Price</button>
-                                        <button onclick="deleteItem('${item._id}', '${item.item_name}')" class="btn btn-danger">Delete</button>
+                                        <div class="action-buttons">
+                                            <button onclick="showItemQR('${item._id}')" class="btn btn-success" title="Show QR Code">📱</button>
+                                            <button onclick="updateItemStock('${item._id}', '${item.item_name}')" class="btn btn-warning" title="Update Stock">📦</button>
+                                            <button onclick="updateItemPrice('${item._id}', '${item.item_name}')" class="btn btn-primary" title="Update Price">💰</button>
+                                            <button onclick="deleteItem('${item._id}', '${item.item_name}')" class="btn btn-danger" title="Delete Item">🗑️</button>
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -1383,8 +1943,12 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/api/items/search?q=${encodeURIComponent(searchTerm)}`);
+                const response = await fetch(`${API_BASE}/api/items/search?q=${encodeURIComponent(searchTerm)}`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
+
+                if (handleAuthError(data)) return;
 
                 if (data.success) {
                     displayItems(data.items);
@@ -1413,9 +1977,7 @@
             try {
                 const response = await fetch(`${API_BASE}/api/items`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({
                         item_name: itemName,
                         item_price: itemPrice,
@@ -1427,16 +1989,63 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showPopup('Success! 🎉', `Item "${itemName}" added successfully to inventory!`, 'alert');
+                    showNotification('Success!', `Item "${itemName}" added successfully to inventory`, 'success');
                     document.getElementById('addItemForm').reset();
                     loadItems();
                     loadItemsForInvoice();
+                    
+                    // Show QR code if available
+                    if (data.qr_code) {
+                        setTimeout(() => {
+                            showQRCodeModal(data.qr_code, data.item);
+                        }, 500);
+                    }
                 } else {
                     showPopup('Error ❌', 'Error adding item: ' + data.error, 'alert');
                 }
             } catch (error) {
                 console.error('Error adding item:', error);
                 showPopup('Error ❌', 'Failed to add item. Please try again.', 'alert');
+            }
+        });
+
+        document.getElementById('addCustomerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const customerName = document.getElementById('newCustomerName').value.trim();
+            const customerPhone = document.getElementById('newCustomerPhone').value.trim();
+            const customerEmail = document.getElementById('newCustomerEmail').value.trim();
+            const customerAddress = document.getElementById('newCustomerAddress').value.trim();
+
+            if (!customerName || !customerPhone || !customerEmail || !customerAddress) {
+                showPopup('Invalid Input ⚠️', 'All customer fields are required: name, phone, email, and address.', 'alert');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/customers`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        customer_name: customerName,
+                        customer_phone: customerPhone,
+                        customer_email: customerEmail,
+                        customer_address: customerAddress
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Success!', `Customer "${customerName}" added successfully`, 'success');
+                    document.getElementById('addCustomerForm').reset();
+                    loadCustomers();
+                } else {
+                    showPopup('Error ❌', 'Error adding customer: ' + data.error, 'alert');
+                }
+            } catch (error) {
+                console.error('Error adding customer:', error);
+                showPopup('Error ❌', 'Failed to add customer. Please try again.', 'alert');
             }
         });
 
@@ -1462,9 +2071,7 @@
             try {
                 const response = await fetch(`${API_BASE}/api/items/${itemId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({
                         stock: stock,
                         update_type: 'add'
@@ -1508,9 +2115,7 @@
             try {
                 const response = await fetch(`${API_BASE}/api/items/${itemId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({
                         item_price: price
                     })
@@ -1544,7 +2149,8 @@
 
             try {
                 const response = await fetch(`${API_BASE}/api/items/${itemId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: getAuthHeaders(),
                 });
 
                 const data = await response.json();
@@ -1562,11 +2168,283 @@
             }
         }
 
+        // Customer Management Functions
+        async function loadCustomers() {
+            try {
+                const response = await fetch(`${API_BASE}/api/customers`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+
+                if (handleAuthError(data)) return;
+
+                const customersTable = document.getElementById('customersTable');
+
+                if (data.success && data.customers.length > 0) {
+                    const customers = data.customers;
+                    customersTable.innerHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Address</th>
+                                    <th>Total Purchases</th>
+                                    <th>Total Spent</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            ${customers.map(customer => `
+                                <tr>
+                                    <td style="font-weight: bold;">${customer.customer_name}</td>
+                                    <td>📱 ${customer.customer_phone}</td>
+                                    <td>${customer.customer_email || '-'}</td>
+                                    <td>${customer.customer_address || '-'}</td>
+                                    <td style="text-align: center;">${customer.total_purchases || 0}</td>
+                                    <td style="color: #138808; font-weight: bold;">${formatCurrency(customer.total_spent || 0)}</td>
+                                    <td class="actions-column">
+                                        <div class="action-buttons">
+                                            <button onclick="editCustomer('${customer._id}')" class="btn-icon" title="Edit Customer">✏️</button>
+                                            <button onclick="deleteCustomer('${customer._id}', '${customer.customer_name}')" class="btn-icon" title="Delete Customer">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    customersTable.innerHTML = `
+                        <div class="empty-state">
+                            <h3>👥 No Customers Yet</h3>
+                            <p>Add your first customer using the form above</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                document.getElementById('customersTable').innerHTML = '<p class="error">Error loading customers. Please try again.</p>';
+            }
+        }
+
+        async function searchCustomers() {
+            const searchTerm = document.getElementById('customerSearch').value.trim();
+            if (!searchTerm) {
+                loadCustomers();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/customers/search?q=${encodeURIComponent(searchTerm)}`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+
+                if (handleAuthError(data)) return;
+
+                const customersTable = document.getElementById('customersTable');
+
+                if (data.success && data.customers.length > 0) {
+                    const customers = data.customers;
+                    customersTable.innerHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Address</th>
+                                    <th>Total Purchases</th>
+                                    <th>Total Spent</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            ${customers.map(customer => `
+                                <tr>
+                                    <td style="font-weight: bold;">${customer.customer_name}</td>
+                                    <td>📱 ${customer.customer_phone}</td>
+                                    <td>${customer.customer_email || '-'}</td>
+                                    <td>${customer.customer_address || '-'}</td>
+                                    <td style="text-align: center;">${customer.total_purchases || 0}</td>
+                                    <td style="color: #138808; font-weight: bold;">${formatCurrency(customer.total_spent || 0)}</td>
+                                    <td class="actions-column">
+                                        <div class="action-buttons">
+                                            <button onclick="editCustomer('${customer._id}')" class="btn-icon" title="Edit Customer">✏️</button>
+                                            <button onclick="deleteCustomer('${customer._id}', '${customer.customer_name}')" class="btn-icon" title="Delete Customer">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    customersTable.innerHTML = `
+                        <div class="empty-state">
+                            <h3>🔍 No Customers Found</h3>
+                            <p>No customers match your search: "${searchTerm}"</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error searching customers:', error);
+                showPopup('Error ❌', 'Failed to search customers. Please try again.', 'alert');
+            }
+        }
+
+        async function editCustomer(customerId) {
+            try {
+                // Fetch customer data first
+                const response = await fetch(`${API_BASE}/api/customers`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                
+                if (handleAuthError(data)) return;
+                
+                const customer = data.customers.find(c => c._id === customerId);
+                if (!customer) {
+                    showPopup('Error ❌', 'Customer not found', 'alert');
+                    return;
+                }
+                
+                // Prompt for new values
+                const newName = prompt('Enter new customer name:', customer.customer_name);
+                if (newName === null) return;
+                
+                const newPhone = prompt('Enter new phone number:', customer.customer_phone);
+                if (newPhone === null) return;
+                
+                const newEmail = prompt('Enter new email (optional):', customer.customer_email || '');
+                if (newEmail === null) return;
+                
+                const newAddress = prompt('Enter new address (optional):', customer.customer_address || '');
+                if (newAddress === null) return;
+                
+                // Update customer
+                const updateResponse = await fetch(`${API_BASE}/api/customers/${customerId}`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        customer_name: newName.trim(),
+                        customer_phone: newPhone.trim(),
+                        customer_email: newEmail.trim(),
+                        customer_address: newAddress.trim()
+                    })
+                });
+                
+                const updateData = await updateResponse.json();
+                
+                if (updateData.success) {
+                    showNotification('Success!', 'Customer updated successfully', 'success');
+                    loadCustomers();
+                } else {
+                    showPopup('Error ❌', updateData.error, 'alert');
+                }
+            } catch (error) {
+                console.error('Error editing customer:', error);
+                showPopup('Error ❌', 'Failed to edit customer. Please try again.', 'alert');
+            }
+        }
+
+        async function deleteCustomer(customerId, customerName) {
+            showPopup(
+                'Delete Customer? 🗑️',
+                `Are you sure you want to delete "${customerName}"?\n\nThis action cannot be undone!`,
+                'confirm',
+                () => processDeleteCustomer(customerId, customerName)
+            );
+        }
+
+        async function processDeleteCustomer(customerId, customerName) {
+            try {
+                const response = await fetch(`${API_BASE}/api/customers/${customerId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Deleted!', `${customerName} has been removed`, 'success');
+                    loadCustomers();
+                } else {
+                    showPopup('Error ❌', data.error, 'alert');
+                }
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+                showPopup('Error ❌', 'Failed to delete customer. Please try again.', 'alert');
+            }
+        }
+
         // Invoice functions
+        async function loadCustomersForInvoice() {
+            try {
+                const response = await fetch(`${API_BASE}/api/customers`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+
+                if (handleAuthError(data)) return;
+
+                if (data.success) {
+                    const select = document.getElementById('customerSelect');
+                    select.innerHTML = '<option value="">-- Select a customer or enter new details below --</option>' +
+                        data.customers
+                            .map(customer => `<option value="${customer._id}" 
+                                data-name="${customer.customer_name}" 
+                                data-phone="${customer.customer_phone}" 
+                                data-email="${customer.customer_email}" 
+                                data-address="${customer.customer_address}">
+                                ${customer.customer_name} - ${customer.customer_phone}
+                            </option>`)
+                            .join('');
+                }
+            } catch (error) {
+                console.error('Error loading customers for invoice:', error);
+            }
+        }
+
+        document.getElementById('customerSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (this.value) {
+                // Populate form fields with selected customer data
+                document.getElementById('customerName').value = selectedOption.getAttribute('data-name') || '';
+                document.getElementById('customerPhone').value = selectedOption.getAttribute('data-phone') || '';
+                document.getElementById('customerEmail').value = selectedOption.getAttribute('data-email') || '';
+                document.getElementById('customerAddress').value = selectedOption.getAttribute('data-address') || '';
+                
+                // Make fields readonly when customer is selected
+                document.getElementById('customerName').readOnly = true;
+                document.getElementById('customerPhone').readOnly = true;
+                document.getElementById('customerEmail').readOnly = true;
+                document.getElementById('customerAddress').readOnly = true;
+            } else {
+                // Clear fields and make them editable
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerPhone').value = '';
+                document.getElementById('customerEmail').value = '';
+                document.getElementById('customerAddress').value = '';
+                
+                document.getElementById('customerName').readOnly = false;
+                document.getElementById('customerPhone').readOnly = false;
+                document.getElementById('customerEmail').readOnly = false;
+                document.getElementById('customerAddress').readOnly = false;
+            }
+        });
+
         async function loadItemsForInvoice() {
             try {
-                const response = await fetch(`${API_BASE}/api/items`);
+                const response = await fetch(`${API_BASE}/api/items`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
+
+                if (handleAuthError(data)) return;
 
                 if (data.success) {
                     const select = document.getElementById('invoiceItemSelect');
@@ -1692,6 +2570,23 @@
             showPopup('Removed! ✅', `"${item.name}" removed from invoice successfully.`, 'alert');
         }
 
+        function roundToCustomFormat(amount) {
+            // Round to nearest integer first
+            const rounded = Math.round(amount);
+            const lastDigit = rounded % 10;
+            
+            if (lastDigit >= 0 && lastDigit <= 4) {
+                // Round down to nearest 10 (except 5)
+                return Math.floor(rounded / 10) * 10;
+            } else if (lastDigit === 5) {
+                // Keep as is (ends with 5)
+                return rounded;
+            } else { // lastDigit >= 6 && lastDigit <= 9
+                // Round up to nearest 10
+                return Math.ceil(rounded / 10) * 10;
+            }
+        }
+
         function calculateInvoiceTotals() {
             if (invoiceItems.length === 0) {
                 document.getElementById('invoiceSummary').style.display = 'none';
@@ -1704,7 +2599,8 @@
             const discountRate = parseFloat(document.getElementById('discountRate').value) || 0;
             const tax = subtotal * (taxRate / 100);
             const discount = subtotal * (discountRate / 100);
-            const total = subtotal + tax - discount;
+            const calculatedTotal = subtotal + tax - discount;
+            const total = roundToCustomFormat(calculatedTotal);
 
             document.getElementById('subtotal').textContent = formatCurrency(subtotal);
             document.getElementById('tax').textContent = formatCurrency(tax);
@@ -1719,11 +2615,20 @@
             const customerName = document.getElementById('customerName').value.trim();
             const customerPhone = document.getElementById('customerPhone').value.trim();
             const customerAddress = document.getElementById('customerAddress').value.trim();
+            const customerEmail = document.getElementById('customerEmail').value.trim();
             const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
             const discountRate = parseFloat(document.getElementById('discountRate').value) || 0;
+            const sendEmail = document.getElementById('sendEmailCheckbox').checked;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const notes = document.getElementById('invoiceNotes').value.trim();
 
             if (!customerName || !customerPhone || !customerAddress) {
                 showPopup('Missing Information ⚠️', 'Please fill in all customer information before generating invoice.', 'alert');
+                return;
+            }
+
+            if (sendEmail && !customerEmail) {
+                showPopup('Email Required ⚠️', 'Please enter customer email address to send the invoice via email.', 'alert');
                 return;
             }
 
@@ -1737,23 +2642,32 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('session_token')}`
                     },
                     body: JSON.stringify({
                         customer_name: customerName,
                         customer_address: customerAddress,
                         customer_number: customerPhone,
+                        customer_email: customerEmail,
                         items: invoiceItems,
                         tax_rate: taxRate,
-                        discount_rate: discountRate
+                        discount_rate: discountRate,
+                        payment_method: paymentMethod,
+                        notes: notes,
+                        send_email: sendEmail
                     })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
+                    const message = data.email_sent 
+                        ? `Invoice #${data.invoice.invoice_id} created and sent to ${customerEmail}! Would you like to download the PDF?`
+                        : `Invoice #${data.invoice.invoice_id} created successfully! Would you like to download the PDF?`;
+                    
                     showPopup(
                         'Invoice Created! 📄', 
-                        `Invoice #${data.invoice.invoice_id} created successfully! Would you like to download the PDF?`,
+                        message,
                         'confirm',
                         () => {
                             const sessionToken = localStorage.getItem('session_token');
@@ -1771,9 +2685,18 @@
         }
 
         function clearInvoiceForm() {
+            document.getElementById('customerSelect').value = '';
             document.getElementById('customerName').value = '';
             document.getElementById('customerPhone').value = '';
             document.getElementById('customerAddress').value = '';
+            document.getElementById('customerEmail').value = '';
+            document.getElementById('customerName').readOnly = false;
+            document.getElementById('customerPhone').readOnly = false;
+            document.getElementById('customerEmail').readOnly = false;
+            document.getElementById('customerAddress').readOnly = false;
+            document.getElementById('sendEmailCheckbox').checked = false;
+            document.getElementById('paymentMethod').value = 'cash';
+            document.getElementById('invoiceNotes').value = '';
             document.getElementById('taxRate').value = '0';
             document.getElementById('discountRate').value = '0';
             invoiceItems = [];
@@ -1788,8 +2711,12 @@
         // Invoices functions
         async function loadInvoices() {
             try {
-                const response = await fetch(`${API_BASE}/api/invoices`);
+                const response = await fetch(`${API_BASE}/api/invoices`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
+
+                if (handleAuthError(data)) return;
 
                 if (data.success) {
                     displayInvoices(data.invoices);
@@ -1825,13 +2752,15 @@
                         <tbody>
                             ${invoices.map(invoice => `
                                 <tr>
-                                    <td>#${invoice.invoice_id}</td>
-                                    <td>${invoice.customer_name}</td>
+                                    <td><strong style="color: #138808;">#${invoice.invoice_id}</strong></td>
+                                    <td><strong>${invoice.customer_name}</strong></td>
                                     <td>${formatDate(invoice.order_date)}</td>
-                                    <td>${formatCurrency(invoice.total)}</td>
+                                    <td><strong style="color: #138808; font-size: 1.1em;">₹${invoice.total.toFixed(2)}</strong></td>
                                     <td>
-                                        <button onclick="viewInvoiceDetails(${invoice.invoice_id})" class="btn btn-primary">View</button>
-                                        <button onclick="downloadInvoicePDF(${invoice.invoice_id})" class="btn btn-success">Download PDF</button>
+                                        <div class="action-buttons">
+                                            <button onclick="viewInvoiceDetails(${invoice.invoice_id})" class="btn btn-primary" title="View Details">👁️ View</button>
+                                            <button onclick="downloadInvoicePDF(${invoice.invoice_id})" class="btn btn-success" title="Download PDF">📄 PDF</button>
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -1843,8 +2772,12 @@
 
         async function viewInvoiceDetails(invoiceId) {
             try {
-                const response = await fetch(`${API_BASE}/api/invoices/${invoiceId}`);
+                const response = await fetch(`${API_BASE}/api/invoices/${invoiceId}`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
+
+                if (handleAuthError(data)) return;
 
                 if (data.success) {
                     const invoice = data.invoice;
@@ -1897,6 +2830,178 @@
 
         // Initialize the application
         let currentInvoices = [];
+        let qrScannerStream = null;
+
+        // QR Code Functions
+        async function showItemQR(itemId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/items/${itemId}/qrcode`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showQRCodeModal(data.qr_code, data.item);
+                } else {
+                    showPopup('Error ❌', 'Failed to generate QR code: ' + data.error, 'alert');
+                }
+            } catch (error) {
+                console.error('Error fetching QR code:', error);
+                showPopup('Error ❌', 'Failed to generate QR code', 'alert');
+            }
+        }
+        
+        function showQRCodeModal(qrCode, item) {
+            const modal = document.getElementById('qrModal');
+            const img = document.getElementById('qrCodeImage');
+            const info = document.getElementById('qrItemInfo');
+            
+            img.src = `data:image/png;base64,${qrCode}`;
+            info.textContent = `${item.item_name} - Rs ${item.item_price} per ${item.unit}`;
+            
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+        }
+        
+        function closeQRModal() {
+            const modal = document.getElementById('qrModal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 200);
+        }
+        
+        function printQR() {
+            const img = document.getElementById('qrCodeImage');
+            const info = document.getElementById('qrItemInfo');
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Print QR Code</title>
+                        <style>
+                            body { text-align: center; font-family: Arial; padding: 20px; }
+                            img { max-width: 400px; border: 2px solid #138808; padding: 20px; }
+                            h2 { color: #138808; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>Item QR Code</h2>
+                        <img src="${img.src}">
+                        <h3>${info.textContent}</h3>
+                        <p>Scan this QR code to quickly add item to invoice</p>
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                                setTimeout(() => window.close(), 100);
+                            }
+                        <\/script>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+        
+        // QR Scanner Functions
+        function openQRScanner() {
+            const modal = document.getElementById('qrScannerModal');
+            const video = document.getElementById('qrVideo');
+            
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            
+            // Start camera
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function(stream) {
+                    qrScannerStream = stream;
+                    video.srcObject = stream;
+                    video.setAttribute('playsinline', true);
+                    video.play();
+                    requestAnimationFrame(scanQRCode);
+                })
+                .catch(function(err) {
+                    console.error('Error accessing camera:', err);
+                    showPopup('Camera Error ❌', 'Could not access camera. Please check permissions.', 'alert');
+                    closeQRScanner();
+                });
+        }
+        
+        function scanQRCode() {
+            const video = document.getElementById('qrVideo');
+            const canvas = document.getElementById('qrCanvas');
+            const modal = document.getElementById('qrScannerModal');
+            
+            if (modal.style.display === 'none' || !video.videoWidth) {
+                if (modal.style.display !== 'none') {
+                    requestAnimationFrame(scanQRCode);
+                }
+                return;
+            }
+            
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code) {
+                try {
+                    const itemData = JSON.parse(code.data);
+                    console.log('QR Code scanned:', itemData);
+                    
+                    closeQRScanner();
+                    addScannedItemToInvoice(itemData);
+                } catch (e) {
+                    console.error('Invalid QR code data:', e);
+                }
+            }
+            
+            requestAnimationFrame(scanQRCode);
+        }
+        
+        function closeQRScanner() {
+            const modal = document.getElementById('qrScannerModal');
+            const video = document.getElementById('qrVideo');
+            
+            if (qrScannerStream) {
+                qrScannerStream.getTracks().forEach(track => track.stop());
+                qrScannerStream = null;
+            }
+            
+            video.srcObject = null;
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 200);
+        }
+        
+        function addScannedItemToInvoice(itemData) {
+            showInputPopup(
+                '🎯 Item Scanned Successfully!',
+                `<strong>${itemData.item_name}</strong><br>Price: Rs ${itemData.item_price} per ${itemData.unit}<br><br>Enter quantity:`,
+                'number',
+                '1',
+                (quantity) => {
+                    if (!quantity || quantity <= 0) {
+                        showPopup('Invalid Quantity ⚠️', 'Please enter a valid quantity', 'alert');
+                        return;
+                    }
+                    
+                    // Set the item in the dropdown
+                    const select = document.getElementById('invoiceItemSelect');
+                    select.value = itemData.item_id;
+                    
+                    // Set quantity
+                    document.getElementById('invoiceQuantity').value = quantity;
+                    
+                    // Trigger the add item action
+                    addItemToInvoice();
+                }
+            );
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             loadDashboard();
@@ -1905,6 +3010,12 @@
             document.getElementById('itemSearch').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     searchItems();
+                }
+            });
+            
+            document.getElementById('customerSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchCustomers();
                 }
             });
             

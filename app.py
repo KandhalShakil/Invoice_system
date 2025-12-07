@@ -30,7 +30,12 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 CORS(app, 
      supports_credentials=True,
-     origins=['https://kandhal-invoice-system.vercel.app', 'http://localhost:3000'],
+     origins=[
+         'https://kandhal-invoice-system.vercel.app',
+         'http://localhost:3000',
+         'http://127.0.0.1:5000',
+         'http://localhost:5000'
+     ],
      allow_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 

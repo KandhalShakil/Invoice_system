@@ -2705,6 +2705,47 @@
             return false;
         }
         
+        // Health check to wake up Render server
+        async function pingServerHealth(showLoading = false) {
+            if (showLoading) {
+                showNotification('Waking up server...', 'Please wait, connecting to server', 'info');
+            }
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
+                const response = await fetch(`${API_BASE}/`, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    console.log('Server is awake and ready');
+                    return true;
+                }
+                
+                // If 502/503, wait and try once more
+                if (response.status === 502 || response.status === 503) {
+                    console.log('Server waking up, waiting 5 seconds...');
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    
+                    const retryResponse = await fetch(`${API_BASE}/`, {
+                        method: 'GET'
+                    });
+                    
+                    return retryResponse.ok;
+                }
+                
+                return response.ok;
+            } catch (error) {
+                console.warn('Health check failed:', error.message);
+                return false;
+            }
+        }
+        
         // Retry helper for handling Render free tier wake-up delays
         async function fetchWithRetry(url, options = {}, maxRetries = 3, retryDelay = 2000) {
             for (let i = 0; i < maxRetries; i++) {
@@ -4028,6 +4069,10 @@
             }
 
             try {
+                // Wake up server if needed
+                showNotification('Preparing...', 'Connecting to server', 'info');
+                await pingServerHealth(false);
+                
                 showNotification('Creating Invoice...', 'Please wait, generating your invoice', 'info');
                 
                 const response = await fetchWithRetry(`${API_BASE}/api/invoices`, {
@@ -4071,7 +4116,18 @@
                 }
             } catch (error) {
                 console.error('Error creating invoice:', error);
-                showPopup('Error ❌', 'Failed to create invoice. The server might be waking up - please try again in a moment.', 'alert');
+                
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    showPopup('Connection Error ❌', 
+                        'Unable to connect to server. This could be due to:\n\n' +
+                        '1. Server is starting up (try again in 30 seconds)\n' +
+                        '2. Network connection issue\n' +
+                        '3. Server maintenance\n\n' +
+                        'Please wait a moment and try again.', 
+                        'alert');
+                } else {
+                    showPopup('Error ❌', 'Failed to create invoice. Please try again in a moment.', 'alert');
+                }
             }
         }
 

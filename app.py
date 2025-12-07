@@ -261,18 +261,38 @@ def send_invoice_email_async(customer_email, invoice_id, invoice_doc, shop_name,
         part = MIMEText(html, 'html')
         msg.attach(part)
         
-        # Send email
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
+        # Send email with detailed logging
+        print(f"📧 Attempting to send email...")
+        print(f"   To: {customer_email}")
+        print(f"   From: {SMTP_EMAIL}")
+        print(f"   SMTP Server: {SMTP_SERVER}:{SMTP_PORT}")
+        
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
+            server.set_debuglevel(0)  # Set to 1 for verbose SMTP debug
+            print(f"   🔐 Starting TLS...")
             server.starttls()
+            print(f"   🔑 Logging in...")
             server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            print(f"   📤 Sending message...")
             server.send_message(msg)
         
-        print(f"✅ Invoice email sent successfully to {customer_email}")
+        print(f"✅ Invoice email sent successfully!")
+        print(f"   To: {customer_email}")
         print(f"   Shop: {shop_name}")
         print(f"   Invoice ID: {invoice_id}")
         
+    except smtplib.SMTPAuthenticationError as auth_error:
+        print(f"❌ SMTP Authentication Error!")
+        print(f"   Error: {auth_error}")
+        print(f"   SMTP Email: {SMTP_EMAIL}")
+        print(f"   Check if email and password are correct")
+    except smtplib.SMTPException as smtp_error:
+        print(f"❌ SMTP Error sending invoice email")
+        print(f"   Error: {smtp_error}")
+        print(f"   To: {customer_email}")
     except Exception as email_error:
         print(f"❌ Failed to send invoice email to {customer_email}")
+        print(f"   Error Type: {type(email_error).__name__}")
         print(f"   Error: {email_error}")
         print(f"   Shop: {shop_name}")
         print(f"   Invoice ID: {invoice_id}")

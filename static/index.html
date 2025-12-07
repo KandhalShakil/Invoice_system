@@ -4199,6 +4199,8 @@
                 const items = data.items;
                 const qrCodesData = [];
                 
+                console.log(`Fetching QR codes for ${items.length} items...`);
+                
                 // Fetch QR codes for all items
                 for (const item of items) {
                     try {
@@ -4207,21 +4209,26 @@
                         });
                         const qrData = await qrResponse.json();
                         
-                        if (qrData.success) {
+                        if (qrData.success && qrData.qr_code) {
                             qrCodesData.push({
                                 name: item.item_name,
                                 price: item.item_price,
                                 unit: item.unit || 'pcs',
                                 qrCode: qrData.qr_code
                             });
+                            console.log(`✓ QR code generated for: ${item.item_name}`);
+                        } else {
+                            console.warn(`✗ Failed to generate QR for: ${item.item_name}`, qrData);
                         }
                     } catch (error) {
-                        console.error(`Error fetching QR for ${item.item_name}:`, error);
+                        console.error(`✗ Error fetching QR for ${item.item_name}:`, error);
                     }
                 }
                 
+                console.log(`Successfully generated ${qrCodesData.length} QR codes out of ${items.length} items`);
+                
                 if (qrCodesData.length === 0) {
-                    showPopup('Error ❌', 'Failed to generate QR codes. Please try again.', 'alert');
+                    showPopup('Error ❌', 'Failed to generate QR codes. Please check the console for details and try again.', 'alert');
                     return;
                 }
                 

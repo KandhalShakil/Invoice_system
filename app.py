@@ -42,12 +42,24 @@ CORS(app,
      origins=[
          'https://kandhal-invoice-system.vercel.app',
          'http://localhost:3000',
+         'http://127.0.0.1:3000',
          'http://127.0.0.1:5000',
          'http://localhost:5000',
      ],
      allow_headers=['Content-Type', 'Authorization'],
      expose_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+
+# Additional CORS handler to ensure headers are always present
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 
 # MongoDB connection from environment variables
 connection_string = os.getenv('MONGODB_URI')

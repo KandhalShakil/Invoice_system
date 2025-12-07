@@ -2648,6 +2648,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Print All QR Codes Modal -->
+    <div id="printQRModal" class="popup-overlay" style="display:none; background: rgba(0,0,0,0.95);">
+        <div style="width: 100%; height: 100vh; overflow-y: auto; background: white; position: relative;">
+            <div id="printQRContent" style="width: 100%; height: 100%;"></div>
+            <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: white; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 10px;">
+                <button onclick="window.print()" style="padding: 12px 30px; background: #138808; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">🖨️ Print All</button>
+                <button onclick="closePrintQRModal()" style="padding: 12px 30px; background: #dc3545; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">✖ Close</button>
+            </div>
+        </div>
+    </div>
     
     <!-- QR Scanner Modal -->
     <div id="qrScannerModal" class="popup-overlay" style="display:none;">
@@ -4242,14 +4253,6 @@
         }
         
         function generateQRPrintPage(qrCodesData) {
-            const printWindow = window.open('', '_blank');
-            
-            // Check if popup was blocked
-            if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
-                showPopup('Popup Blocked ❌', 'Please allow popups for this site to print QR codes. Check your browser settings and try again.', 'alert');
-                return;
-            }
-            
             // Create pages with 40 QR codes per page (8 rows x 5 columns)
             const qrCodesPerPage = 40;
             const totalPages = Math.ceil(qrCodesData.length / qrCodesPerPage);
@@ -4298,56 +4301,37 @@
                     '</div>';
             }
             
-            try {
-                printWindow.document.write(
-                    '<!DOCTYPE html>' +
-                    '<html>' +
-                    '<head>' +
-                        '<title>QR Codes - Invoice System</title>' +
-                        '<style>' +
-                            '* { margin: 0; padding: 0; box-sizing: border-box; }' +
-                            '@page { size: A4 landscape; margin: 10mm; }' +
-                            'body { font-family: Arial, sans-serif; padding: 10px; background: white; }' +
-                            '.page { min-height: 100vh; display: flex; flex-direction: column; }' +
-                            '.header { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 3px solid #138808; }' +
-                            '.header h1 { color: #138808; font-size: 24px; margin-bottom: 5px; }' +
-                            '.header p { color: #666; font-size: 14px; }' +
-                            '.qr-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(8, 1fr); gap: 8px; width: 100%; flex: 1; }' +
-                            '.qr-card { border: 2px solid #138808; border-radius: 8px; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; page-break-inside: avoid; }' +
-                            '.qr-card.empty { border: 2px dashed #ddd; background: #f9f9f9; }' +
-                            '.qr-card img { width: 100%; max-width: 120px; height: auto; margin-bottom: 5px; }' +
-                            '.item-name { font-weight: bold; font-size: 11px; text-align: center; color: #138808; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }' +
-                            '.item-price { font-size: 10px; color: #666; text-align: center; }' +
-                            '.empty-text { color: #ccc; font-size: 24px; font-weight: bold; }' +
-                            '.footer { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 2px solid #138808; color: #666; font-size: 11px; }' +
-                            '@media print { body { padding: 5px; } .header h1 { font-size: 20px; } .qr-grid { gap: 5px; } .qr-card { padding: 5px; } .no-print { display: none; } }' +
-                        '</style>' +
-                    '</head>' +
-                    '<body>' +
-                        allPagesHTML +
-                        '<div class="no-print" style="text-align: center; margin-top: 20px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 10px;">' +
-                            '<p style="margin-bottom: 10px; font-weight: bold; color: #138808;">Total: ' + qrCodesData.length + ' QR Codes | ' + totalPages + ' Pages</p>' +
-                            '<button onclick="window.print()" style="padding: 12px 30px; background: #138808; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">🖨️ Print All</button>' +
-                            '<button onclick="window.close()" style="padding: 12px 30px; background: #dc3545; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">✖ Close</button>' +
-                        '</div>' +
-                        '<scr' + 'ipt>' +
-                            'window.onload = function() {' +
-                                'setTimeout(function() { window.print(); }, 500);' +
-                            '};' +
-                        '</scr' + 'ipt>' +
-                    '</body>' +
-                    '</html>'
-                );
-                
-                printWindow.document.close();
-                showNotification('QR Codes Ready! 🎉', 'Generated ' + qrCodesData.length + ' QR codes across ' + totalPages + ' pages', 'success');
-            } catch (error) {
-                console.error('Error writing to print window:', error);
-                if (printWindow) {
-                    printWindow.close();
-                }
-                showPopup('Error ❌', 'Failed to print QR codes. Please try again.', 'alert');
-            }
+            const styleHTML = 
+                '<style>' +
+                    '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+                    '@page { size: A4 landscape; margin: 10mm; }' +
+                    'body { font-family: Arial, sans-serif; padding: 10px; background: white; }' +
+                    '.page { min-height: 100vh; display: flex; flex-direction: column; padding: 20px; }' +
+                    '.header { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 3px solid #138808; }' +
+                    '.header h1 { color: #138808; font-size: 24px; margin-bottom: 5px; }' +
+                    '.header p { color: #666; font-size: 14px; }' +
+                    '.qr-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(8, 1fr); gap: 8px; width: 100%; flex: 1; }' +
+                    '.qr-card { border: 2px solid #138808; border-radius: 8px; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; page-break-inside: avoid; }' +
+                    '.qr-card.empty { border: 2px dashed #ddd; background: #f9f9f9; }' +
+                    '.qr-card img { width: 100%; max-width: 120px; height: auto; margin-bottom: 5px; }' +
+                    '.item-name { font-weight: bold; font-size: 11px; text-align: center; color: #138808; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }' +
+                    '.item-price { font-size: 10px; color: #666; text-align: center; }' +
+                    '.empty-text { color: #ccc; font-size: 24px; font-weight: bold; }' +
+                    '.footer { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 2px solid #138808; color: #666; font-size: 11px; }' +
+                    '@media print { body { padding: 5px; } .header h1 { font-size: 20px; } .qr-grid { gap: 5px; } .qr-card { padding: 5px; } .no-print { display: none !important; } }' +
+                '</style>';
+            
+            // Show the in-page modal
+            const printModal = document.getElementById('printQRModal');
+            const printContent = document.getElementById('printQRContent');
+            printContent.innerHTML = styleHTML + allPagesHTML;
+            printModal.style.display = 'flex';
+            
+            showNotification('QR Codes Ready! 🎉', 'Generated ' + qrCodesData.length + ' QR codes across ' + totalPages + ' pages', 'success');
+        }
+        
+        function closePrintQRModal() {
+            document.getElementById('printQRModal').style.display = 'none';
         }
         
         async function showItemQR(itemId) {

@@ -2,13 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Shakil's Grocery Shop - MongoDB Edition</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+
+        html {
+            font-size: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            html {
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            html {
+                font-size: 14px;
+            }
         }
 
         body {
@@ -16,6 +33,11 @@
             background: #ffffff;
             min-height: 100vh;
             color: #2c3e50;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            max-width: 100vw;
+            position: relative;
         }
 
         .container {
@@ -49,6 +71,21 @@
             position: relative;
             overflow: hidden;
         }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+                border-width: 2px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 15px;
+                border-radius: 15px;
+                margin-bottom: 20px;
+            }
+        }
 
         .header::before {
             content: '';
@@ -73,11 +110,42 @@
             margin-bottom: 15px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            .header {
+                padding: 20px 15px 15px 15px;
+            }
+            .header p {
+                margin-bottom: 5px;
+            }
+        }
 
         .header p {
             color: #ff9933;
             font-size: 1.4em;
             font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .header p {
+                font-size: 1.1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header p {
+                font-size: 0.9em;
+            }
         }
 
         .nav-tabs {
@@ -88,10 +156,19 @@
             margin-bottom: 25px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
             border: 2px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-tabs {
+                padding: 5px;
+                gap: 5px;
+            }
         }
 
         .nav-tab {
             flex: 1;
+            min-width: 100px;
             padding: 18px 25px;
             background: transparent;
             border: none;
@@ -103,6 +180,22 @@
             margin: 0 3px;
             position: relative;
             overflow: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-tab {
+                padding: 12px 15px;
+                font-size: 0.9em;
+                margin: 2px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-tab {
+                flex: 1 1 45%;
+                padding: 10px 8px;
+                font-size: 0.8em;
+            }
         }
 
         .nav-tab::before {
@@ -151,6 +244,23 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .card {
+                padding: 15px;
+                border-radius: 12px;
+                margin-bottom: 15px;
+            }
         }
         
         .card:hover {
@@ -177,6 +287,19 @@
             padding-bottom: 12px;
             display: inline-block;
             position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .card h2 {
+                font-size: 1.5em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .card h2 {
+                font-size: 1.2em;
+                margin-bottom: 15px;
+            }
         }
         
         .card h2::after {
@@ -209,6 +332,20 @@
             transition: all 0.3s ease;
             background: #ffffff;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        @media (max-width: 768px) {
+            .form-group input, .form-group select, .form-group textarea {
+                padding: 12px;
+                font-size: 1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-group input, .form-group select, .form-group textarea {
+                padding: 10px;
+                font-size: 0.95em;
+            }
         }
 
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
@@ -343,6 +480,21 @@
         .table-container {
             overflow-x: auto;
             margin: 20px 0;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .table-container {
+                margin: 15px -15px;
+                border-radius: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .table-container {
+                margin: 10px -10px;
+            }
         }
 
         table {
@@ -354,11 +506,38 @@
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
+        
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.9em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            table {
+                font-size: 0.8em;
+            }
+        }
 
         th, td {
             padding: 16px 20px;
             text-align: left;
             border-bottom: 1px solid #f0f0f0;
+        }
+        
+        @media (max-width: 768px) {
+            th, td {
+                padding: 12px 15px;
+                font-size: 0.9em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            th, td {
+                padding: 8px 10px;
+                font-size: 0.85em;
+                white-space: nowrap;
+            }
         }
 
         th {
@@ -368,6 +547,20 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 0.95em;
+        }
+        
+        @media (max-width: 768px) {
+            th {
+                font-size: 0.85em;
+                letter-spacing: 0.3px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            th {
+                font-size: 0.8em;
+                letter-spacing: 0.2px;
+            }
         }
         
         th:last-child, td:last-child {
@@ -413,6 +606,20 @@
             gap: 20px;
             margin-bottom: 30px;
         }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
 
         .stat-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -424,6 +631,18 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stat-card {
+                padding: 15px;
+            }
         }
 
         .stat-card::before {
@@ -446,6 +665,12 @@
             box-shadow: 0 12px 30px rgba(19, 136, 8, 0.2);
             border-color: #138808;
         }
+        
+        @media (max-width: 480px) {
+            .stat-card:hover {
+                transform: translateY(-4px) scale(1.01);
+            }
+        }
 
         .stat-card h3 {
             color: #138808;
@@ -454,6 +679,19 @@
             font-weight: 700;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
+        
+        @media (max-width: 768px) {
+            .stat-card h3 {
+                font-size: 2em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stat-card h3 {
+                font-size: 1.5em;
+                margin: 10px 0;
+            }
+        }
 
         .stat-card p {
             color: #ff9933;
@@ -461,6 +699,19 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card p {
+                font-size: 1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stat-card p {
+                font-size: 0.85em;
+                letter-spacing: 0.5px;
+            }
         }
 
         .stat-card::before {
@@ -513,6 +764,30 @@
             margin-bottom: 10px;
             border: 2px solid #e9ecef;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .invoice-item {
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-item {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+                align-items: flex-start;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-item {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+                align-items: flex-start;
+            }
         }        .invoice-summary {
             background: #34495e;
             color: white;
@@ -550,6 +825,24 @@
             font-size: 1em;
             transition: all 0.3s ease;
             background: white;
+        }
+        
+        @media (max-width: 768px) {
+            .search-bar input {
+                min-width: 200px;
+                padding: 12px 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .search-bar {
+                gap: 8px;
+            }
+            .search-bar input {
+                min-width: 100%;
+                padding: 10px 12px;
+                font-size: 0.95em;
+            }
         }
         
         .search-bar input:focus {
@@ -641,6 +934,33 @@
             overflow-x: hidden;
         }
         
+        @media (max-width: 1024px) {
+            .popup-modal {
+                padding: 30px 35px;
+                max-width: 550px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .popup-modal {
+                padding: 25px 30px;
+                width: 90%;
+                max-width: 500px;
+                max-height: 80vh;
+                border-radius: 18px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .popup-modal {
+                padding: 20px 15px;
+                width: calc(100% - 30px);
+                max-width: none;
+                max-height: 90vh;
+                border-radius: 15px;
+            }
+        }
+        
         .popup-modal::-webkit-scrollbar {
             width: 8px;
         }
@@ -651,12 +971,12 @@
         }
         
         .popup-modal::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #ff9933, #138808);
+            background: #f1f1f1;
             border-radius: 10px;
         }
         
         .popup-modal::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #138808, #ff9933);
+            background:  #f1f1f1;
         }
         
         .popup-modal::before {
@@ -666,7 +986,7 @@
             left: -2px;
             right: -2px;
             bottom: -2px;
-            background: linear-gradient(45deg, #FF9933, #FFFFFF, #138808, #FF9933);
+            background:  #f1f1f1;
             background-size: 300% 300%;
             border-radius: 22px;
             z-index: -1;
@@ -711,33 +1031,70 @@
             margin-bottom: 20px;
             font-size: 1.6em;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(255, 153, 51, 0.3);
+            text-shadow: none;
             position: relative;
             padding-bottom: 15px;
+            display: inline-block;
+            width: auto;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        @media (max-width: 768px) {
+            .popup-modal h3 {
+                font-size: 1.4em;
+                margin-bottom: 15px;
+                padding-bottom: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .popup-modal h3 {
+                font-size: 1.2em;
+                margin-bottom: 12px;
+                padding-bottom: 10px;
+            }
         }
         
         .popup-modal h3::after {
             content: '';
             position: absolute;
             bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
+            left: 0;
+            right: 0;
+            width: 100%;
             height: 3px;
-            background: linear-gradient(90deg, #FF9933, #138808);
+            background: #FF9933;
             border-radius: 2px;
         }
         
         .popup-modal p {
-            color: #2c3e50;
+            color: #495057;
             margin-bottom: 30px;
-            font-size: 1.15em;
+            font-size: 1.1em;
             line-height: 1.6;
             font-weight: 500;
             text-align: center;
             max-width: 90%;
             margin-left: auto;
             margin-right: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .popup-modal p {
+                font-size: 1.05em;
+                margin-bottom: 25px;
+                line-height: 1.5;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .popup-modal p {
+                font-size: 0.95em;
+                margin-bottom: 20px;
+                line-height: 1.4;
+                max-width: 100%;
+            }
         }
         
         .popup-modal input,
@@ -751,6 +1108,27 @@
             background: #f8f9fa;
             transition: all 0.3s ease;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        
+        @media (max-width: 768px) {
+            .popup-modal input,
+            .popup-input {
+                padding: 12px 18px;
+                font-size: 1em;
+                margin-bottom: 20px;
+                border-radius: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .popup-modal input,
+            .popup-input {
+                padding: 10px 15px;
+                font-size: 0.95em;
+                margin-bottom: 15px;
+                border-radius: 8px;
+            }
         }
         
         .popup-modal input:focus,
@@ -767,6 +1145,23 @@
             gap: 20px;
             justify-content: center;
             margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .popup-buttons {
+                gap: 15px;
+                margin-top: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .popup-buttons {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 10px;
+                width: 100%;
+            }
         }
         
         .popup-btn {
@@ -783,6 +1178,26 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .popup-btn {
+                padding: 12px 25px;
+                font-size: 1em;
+                min-width: 100px;
+                border-radius: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .popup-btn {
+                padding: 12px 20px;
+                font-size: 0.95em;
+                min-width: auto;
+                width: 100%;
+                border-radius: 8px;
+                letter-spacing: 0.3px;
+            }
         }
         
         .popup-btn::before {
@@ -835,20 +1250,25 @@
         }
         
         .popup-btn.ok {
-            background: linear-gradient(135deg, #138808 0%, #28a745 50%, #20c997 100%);
+            background: #28a745;
             color: white;
-            box-shadow: 0 6px 20px rgba(19, 136, 8, 0.3);
+            border: none;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            border-radius: 12px;
+            padding: 14px 50px;
+            font-size: 1.1em;
+            font-weight: 600;
         }
         
         .popup-btn.ok:hover {
-            background: linear-gradient(135deg, #0f6808 0%, #218838 50%, #1e7e34 100%);
+            background: #218838;
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(19, 136, 8, 0.4);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
         }
         
         .popup-btn.ok:active {
             transform: translateY(-1px) scale(0.98);
-            box-shadow: 0 4px 15px rgba(19, 136, 8, 0.3);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         }
         
         /* Responsive Design */
@@ -870,60 +1290,58 @@
                 grid-template-columns: 1fr;
             }
             
-            .popup-modal {
-                margin: 20px;
-                padding: 25px 30px;
-                max-width: none;
-                width: auto;
-            }
-            
-            .popup-modal h3 {
-                font-size: 1.4em;
-            }
-            
-            .popup-modal p {
-                font-size: 1.1em;
-            }
-            
-            .popup-buttons {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .popup-btn {
-                width: 100%;
-                padding: 12px 20px;
-                font-size: 1em;
-            }
-            
             .invoice-item {
                 flex-direction: column;
-                align-items: stretch;
-                text-align: center;
+                align-items: flex-start;
+                text-align: left;
+                gap: 8px;
             }
             
             table {
-                font-size: 0.9em;
+                font-size: 0.85em;
+            }
+            
+            th, td {
+                white-space: nowrap;
             }
         }
         
         @media (max-width: 480px) {
             .header {
-                padding: 20px;
+                padding: 15px;
             }
             
-            .popup-modal {
-                margin: 15px;
-                padding: 20px 25px;
+            .header h1 {
+                font-size: 1.5em;
             }
             
-            .popup-modal h3 {
-                font-size: 1.3em;
+            .header p {
+                font-size: 0.9em;
             }
             
             .btn {
-                padding: 12px 20px;
-                font-size: 1em;
+                padding: 12px 18px;
+                font-size: 0.9em;
+                min-width: 100px;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+                min-width: auto;
+            }
+            
+            img, canvas {
+                max-width: 100%;
+                height: auto;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .nav-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
         }
         
@@ -943,6 +1361,61 @@
             animation: slideInRight 0.4s ease-out;
             max-width: 400px;
             border-left: 4px solid #138808;
+        }
+        
+        @media (max-width: 768px) {
+            .notification {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: calc(100% - 20px);
+                padding: 12px 20px;
+                font-size: 0.95em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .notification {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+        
+        /* Dashboard Header Responsive */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+        }
+        
+        .dashboard-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        @media (max-width: 480px) {
+            .dashboard-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .dashboard-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
         .notification.success {
@@ -1009,6 +1482,87 @@
             }
         }
         
+        /* Logout Button Styles */
+        .logout-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+        
+        @media (max-width: 768px) {
+            .logout-container {
+                position: static;
+                justify-content: center;
+                margin-top: 15px;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logout-container {
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 10px;
+            }
+        }
+        
+        .user-email {
+            color: #138808;
+            font-weight: 600;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .user-email {
+                font-size: 0.9em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .user-email {
+                font-size: 0.85em;
+            }
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .logout-btn {
+                padding: 10px 18px;
+                font-size: 0.9em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logout-btn {
+                padding: 10px 16px;
+                font-size: 0.85em;
+                width: 100%;
+            }
+        }
+        
         @keyframes slideOutRight {
             from {
                 transform: translateX(0);
@@ -1022,6 +1576,751 @@
         
         .notification.hiding {
             animation: slideOutRight 0.4s ease-out forwards;
+        }
+        
+        /* Dashboard Header Responsive */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+            
+            .dashboard-header h2 {
+                text-align: center;
+            }
+        }
+        
+        .dashboard-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        @media (max-width: 480px) {
+            .dashboard-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .dashboard-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* Form Grid Responsive */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+        
+        @media (max-width: 1024px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-grid {
+                gap: 12px;
+            }
+        }
+        
+        /* Customer Form Responsive */
+        .customer-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 768px) {
+            .customer-form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+        
+        /* Invoice Items Grid Responsive */
+        .invoice-items-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px dashed #138808;
+        }
+        
+        @media (max-width: 1024px) {
+            .invoice-items-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .invoice-items-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-items-grid {
+                padding: 15px;
+                gap: 10px;
+            }
+        }
+        
+        /* Invoice Options Grid */
+        .invoice-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .invoice-options-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+        
+        /* QR Code Modal Styles */
+        .qr-code-modal {
+            max-width: 450px !important;
+        }
+        
+        @media (max-width: 768px) {
+            .qr-code-modal {
+                max-width: 400px !important;
+            }
+            
+            .qr-code-modal #qrCodeImage {
+                max-width: 250px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .qr-code-modal {
+                max-width: calc(100% - 30px) !important;
+            }
+            
+            .qr-code-modal #qrCodeImage {
+                max-width: 220px !important;
+            }
+            
+            .qr-code-modal #qrItemInfo {
+                font-size: 1.1em !important;
+            }
+        }
+        
+        /* Action Buttons in Tables */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons {
+                gap: 5px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .action-buttons {
+                flex-direction: column;
+                gap: 5px;
+                width: 100%;
+            }
+            
+            .action-buttons .btn,
+            .action-buttons .btn-icon {
+                width: 100%;
+                font-size: 0.85em;
+                padding: 8px;
+            }
+        }
+        
+        /* Loading and Empty States */
+        .loading, .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        @media (max-width: 768px) {
+            .loading, .empty-state {
+                padding: 30px 15px;
+                font-size: 0.95em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .loading, .empty-state {
+                padding: 25px 10px;
+                font-size: 0.9em;
+            }
+        }
+        
+        /* Search Bar Responsive Enhancement */
+        @media (max-width: 480px) {
+            .search-bar {
+                flex-direction: column;
+            }
+            
+            .search-bar button {
+                width: 100%;
+            }
+        }
+        
+        /* Item Cards Styles */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+        
+        .item-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .item-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #138808, #28a745);
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(19, 136, 8, 0.2);
+            border-color: #138808;
+        }
+        
+        .item-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        
+        .item-card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+            flex: 1;
+        }
+        
+        @media (max-width: 480px) {
+            .item-card-title {
+                font-size: 1.1em;
+            }
+        }
+        
+        .item-card-qr-btn {
+            background: linear-gradient(135deg, #138808 0%, #28a745 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s;
+        }
+        
+        .item-card-qr-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(19, 136, 8, 0.4);
+        }
+        
+        .item-card-body {
+            margin-bottom: 15px;
+        }
+        
+        .item-card-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .item-card-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        
+        .item-card-value {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .item-price {
+            color: #138808;
+            font-size: 1.3em;
+        }
+        
+        .item-stock {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        
+        .item-stock.high {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .item-stock.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .item-stock.low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .item-unit {
+            padding: 6px 12px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .item-card-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        @media (max-width: 480px) {
+            .item-card-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .item-card-actions .btn {
+            padding: 10px 8px;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 480px) {
+            .item-card-actions .btn {
+                width: 100%;
+                font-size: 0.95em;
+            }
+        }
+        
+        /* Customer Cards Styles */
+        .customers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .customers-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .customers-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+        
+        .customer-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .customer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #ff9933, #138808);
+        }
+        
+        .customer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(255, 153, 51, 0.2);
+            border-color: #ff9933;
+        }
+        
+        .customer-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        
+        .customer-card-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+            flex: 1;
+        }
+        
+        @media (max-width: 480px) {
+            .customer-card-name {
+                font-size: 1.1em;
+            }
+        }
+        
+        .customer-card-icon {
+            font-size: 2em;
+            opacity: 0.7;
+        }
+        
+        .customer-card-body {
+            margin-bottom: 15px;
+        }
+        
+        .customer-card-info {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .customer-card-info:last-of-type {
+            border-bottom: none;
+        }
+        
+        .customer-card-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: 600;
+            min-width: 90px;
+            flex-shrink: 0;
+        }
+        
+        .customer-card-value {
+            font-size: 1em;
+            font-weight: 500;
+            color: #2c3e50;
+            word-break: break-word;
+        }
+        
+        .customer-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 2px solid #e9ecef;
+            margin-top: 15px;
+        }
+        
+        .customer-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 480px) {
+            .customer-stats {
+                gap: 10px;
+                width: 100%;
+            }
+        }
+        
+        .customer-stat {
+            text-align: center;
+        }
+        
+        .customer-stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #138808;
+            display: block;
+        }
+        
+        .customer-stat-label {
+            font-size: 0.85em;
+            color: #6c757d;
+            display: block;
+        }
+        
+        .customer-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        @media (max-width: 480px) {
+            .customer-card-footer {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            .customer-card-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+            
+            .customer-card-actions .btn-icon {
+                flex: 1;
+            }
+        }
+        
+        /* Invoice Cards Styles */
+        .invoices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .invoices-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .invoices-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+        
+        .invoice-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .invoice-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #138808, #ff9933);
+        }
+        
+        .invoice-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(19, 136, 8, 0.2);
+            border-color: #138808;
+        }
+        
+        .invoice-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .invoice-card-id {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #138808;
+            margin: 0;
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-card-id {
+                font-size: 1.2em;
+            }
+        }
+        
+        .invoice-card-date {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        
+        .invoice-card-body {
+            margin-bottom: 15px;
+        }
+        
+        .invoice-card-customer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-card-customer {
+                font-size: 1.05em;
+            }
+        }
+        
+        .invoice-card-total {
+            background: linear-gradient(135deg, #138808 0%, #28a745 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(19, 136, 8, 0.2);
+        }
+        
+        .invoice-card-total-label {
+            font-size: 0.85em;
+            opacity: 0.9;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .invoice-card-total-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-card-total-value {
+                font-size: 1.5em;
+            }
+        }
+        
+        .invoice-card-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-card-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .invoice-card-actions .btn {
+            padding: 12px 8px;
+            font-size: 0.95em;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-card-actions .btn {
+                width: 100%;
+                font-size: 1em;
+            }
+        }
+        
+        /* Invoice Summary Responsive */
+        .invoice-summary {
+            background: #34495e;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .invoice-summary {
+                padding: 15px;
+            }
+            
+            .invoice-summary .row {
+                flex-direction: column;
+                gap: 5px;
+                text-align: left;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-summary {
+                padding: 12px;
+                font-size: 0.9em;
+            }
         }
         
         @media (max-width: 768px) {
@@ -1050,13 +2349,13 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div class="dashboard-header">
                 <h2 style="margin: 0; color: #138808;" >📊 Business Overview</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="printAllQRCodes()" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 8px;">
+                <div class="dashboard-buttons">
+                    <button onclick="printAllQRCodes()" class="btn btn-success" style="display: inline-flex !important; align-items: center; gap: 8px; visibility: visible !important;">
                         🖨️ Print All QR Codes
                     </button>
-                    <button onclick="exportAllData()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <button onclick="exportAllData()" class="btn btn-primary" style="display: inline-flex !important; align-items: center; gap: 8px; visibility: visible !important;">
                         📥 Export All Data
                     </button>
                 </div>
@@ -1097,7 +2396,7 @@
             <div class="card">
                 <h2>➕ Add New Item</h2>
                 <form id="addItemForm">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 25px;">
+                    <div class="form-grid">
                         <div class="form-group">
                             <label>📦 Item Name</label>
                             <input type="text" id="itemName" placeholder="Enter item name" required>
@@ -1147,7 +2446,7 @@
             <div class="card">
                 <h2>➕ Add New Customer</h2>
                 <form id="addCustomerForm">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                    <div class="customer-form-grid">
                         <div class="form-group">
                             <label>👤 Customer Name</label>
                             <input type="text" id="newCustomerName" placeholder="Enter full name" required>
@@ -1157,7 +2456,7 @@
                             <input type="tel" id="newCustomerPhone" placeholder="+91 XXXXX XXXXX" required>
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                    <div class="customer-form-grid">
                         <div class="form-group">
                             <label>📧 Email</label>
                             <input type="email" id="newCustomerEmail" placeholder="customer@example.com" required>
@@ -1199,7 +2498,7 @@
                     OR Enter New Customer Details
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                <div class="customer-form-grid">
                     <div class="form-group">
                         <label>👤 Customer Name</label>
                         <input type="text" id="customerName" placeholder="Enter customer full name" required>
@@ -1230,7 +2529,7 @@
                     <p style="color: #666; margin-top: 10px; font-size: 0.9em;">Or manually select item below</p>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 20px; align-items: end; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 15px; border: 2px dashed #138808;">
+                <div class="invoice-items-grid">
                     <div class="form-group">
                         <label>🛍️ Select Item</label>
                         <select id="invoiceItemSelect" style="background: #ffffff; border: 2px solid #138808;">
@@ -1280,26 +2579,14 @@
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-                    <div style="background: #e7f3ff; padding: 20px; border-radius: 10px; border: 2px solid #007bff;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" id="sendEmailCheckbox" style="width: 20px; height: 20px; cursor: pointer;">
-                            <span style="font-size: 1.1em; font-weight: 600; color: #007bff;">📧 Send invoice to customer's email</span>
-                        </label>
-                        <p style="margin: 10px 0 0 30px; color: #666; font-size: 0.9em;">
-                            ✉️ Customer will receive a detailed invoice via email
-                        </p>
-                    </div>
-                    <div style="background: #d4edda; padding: 20px; border-radius: 10px; border: 2px solid #28a745;">
-                        <label style="font-size: 1.1em; font-weight: 600; color: #28a745; margin-bottom: 10px; display: block;">💳 Payment Method</label>
-                        <select id="paymentMethod" style="width: 100%; padding: 12px; border: 2px solid #28a745; border-radius: 8px; font-size: 1em; background: white;">
-                            <option value="cash">💵 Cash</option>
-                            <option value="card">💳 Card</option>
-                            <option value="upi">📱 UPI</option>
-                            <option value="bank_transfer">🏦 Bank Transfer</option>
-                            <option value="cheque">📝 Cheque</option>
-                        </select>
-                    </div>
+                <div style="background: #e7f3ff; padding: 20px; border-radius: 10px; border: 2px solid #007bff; margin-top: 20px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="sendEmailCheckbox" style="width: 20px; height: 20px; cursor: pointer;">
+                        <span style="font-size: 1.1em; font-weight: 600; color: #007bff;">📧 Send invoice to customer's email</span>
+                    </label>
+                    <p style="margin: 10px 0 0 30px; color: #666; font-size: 0.9em;">
+                        ✉️ Customer will receive a detailed invoice via email
+                    </p>
                 </div>
 
                 <div class="form-group" style="margin-top: 20px;">
@@ -1342,16 +2629,22 @@
     
     <!-- QR Code Display Modal -->
     <div id="qrModal" class="popup-overlay" style="display:none;">
-        <div class="popup-modal" style="max-width: 500px;">
-            <h3 id="qrModalTitle">📱 Item QR Code</h3>
-            <div id="qrModalContent" style="text-align: center; padding: 20px;">
-                <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 300px; border: 3px solid #138808; border-radius: 10px; padding: 10px; background: white;">
-                <p id="qrItemInfo" style="margin-top: 15px; font-weight: bold; color: #138808;"></p>
-                <p style="color: #666; margin-top: 10px; font-size: 0.9em;">Scan this QR code to quickly add item to invoice</p>
+        <div class="popup-modal qr-code-modal" style="max-width: 450px; background: white !important; padding: 0; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #FF9933 0%, #FF7A00 100%); padding: 20px; text-align: center;">
+                <h3 style="color: white; margin: 0; font-size: 1.4em; text-shadow: none;">
+                    📱 Item QR Code
+                </h3>
             </div>
-            <div class="popup-buttons">
-                <button class="popup-btn ok" onclick="printQR()">🖨️ Print QR</button>
-                <button class="popup-btn cancel" onclick="closeQRModal()">Close</button>
+            <div id="qrModalContent" style="text-align: center; padding: 30px 20px; background: white;">
+                <div style="background: white; border: 4px solid #28a745; border-radius: 12px; padding: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 280px; width: 100%; display: block; background: white;">
+                </div>
+                <p id="qrItemInfo" style="margin-top: 20px; font-weight: bold; color: #28a745; font-size: 1.2em;"></p>
+                <p style="color: #666; margin-top: 10px; font-size: 0.95em;">Scan this QR code to quickly add<br>item to invoice</p>
+            </div>
+            <div class="popup-buttons" style="padding: 0 20px 25px 20px;">
+                <button class="popup-btn ok" onclick="printQR()" style="flex: 1;">🖨️ Print QR</button>
+                <button class="popup-btn cancel" onclick="closeQRModal()" style="flex: 1;">Close</button>
             </div>
         </div>
     </div>
@@ -1373,10 +2666,8 @@
 
     <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
-        // Auto-detect environment: use localhost if running locally, otherwise use Render URL
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://127.0.0.1:5000' 
-            : 'https://invoice-system-vpmz.onrender.com';
+        // Backend URL - Always use Render production server
+        const API_BASE = 'https://invoice-system-vpmz.onrender.com';
         console.log('API Base URL:', API_BASE);
         let currentItems = [];
         let invoiceItems = [];
@@ -1408,9 +2699,12 @@
             const sessionToken = localStorage.getItem('session_token');
             
             if (!sessionToken) {
+                console.log('No session token found, redirecting to login');
                 window.location.href = 'login.html';
                 return;
             }
+            
+            console.log('Checking authentication with API_BASE:', API_BASE);
             
             try {
                 const response = await fetch(`${API_BASE}/api/auth/verify-session`, {
@@ -1418,12 +2712,21 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ session_token: sessionToken })
+                    body: JSON.stringify({ session_token: sessionToken }),
+                    credentials: 'include'
                 });
                 
+                console.log('Auth response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('Auth response data:', data);
                 
                 if (!data.success) {
+                    console.log('Session invalid, redirecting to login');
                     localStorage.removeItem('session_token');
                     localStorage.removeItem('user_email');
                     window.location.href = 'login.html';
@@ -1459,10 +2762,10 @@
         function updateHeaderWithUser(email) {
             const header = document.querySelector('.header');
             const logoutBtn = document.createElement('div');
-            logoutBtn.style.cssText = 'position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 15px;';
+            logoutBtn.className = 'logout-container';
             logoutBtn.innerHTML = `
-                <span style="color: #138808; font-weight: 600; font-size: 0.95em;">👤 ${email}</span>
-                <button onclick="logout()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                <span class="user-email">👤 ${email}</span>
+                <button onclick="logout()" class="logout-btn">
                     🚪 Logout
                 </button>
             `;
@@ -1707,14 +3010,31 @@
 
         // Dashboard functions
         async function loadDashboard() {
+            console.log('Loading dashboard data...');
             try {
                 const [statsResponse, itemsResponse] = await Promise.all([
-                    fetch(`${API_BASE}/api/stats`, { headers: getAuthHeaders() }),
-                    fetch(`${API_BASE}/api/items`, { headers: getAuthHeaders() })
+                    fetch(`${API_BASE}/api/stats`, { 
+                        headers: getAuthHeaders(),
+                        credentials: 'include'
+                    }),
+                    fetch(`${API_BASE}/api/items`, { 
+                        headers: getAuthHeaders(),
+                        credentials: 'include'
+                    })
                 ]);
+
+                console.log('Stats response status:', statsResponse.status);
+                console.log('Items response status:', itemsResponse.status);
+
+                if (!statsResponse.ok || !itemsResponse.ok) {
+                    throw new Error('Failed to fetch dashboard data');
+                }
 
                 const statsData = await statsResponse.json();
                 const itemsData = await itemsResponse.json();
+
+                console.log('Stats data:', statsData);
+                console.log('Items data:', itemsData);
 
                 if (handleAuthError(statsData) || handleAuthError(itemsData)) return;
 
@@ -1763,7 +3083,16 @@
 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
-                showPopup('Error ❌', 'Failed to load dashboard data. Please refresh the page.', 'alert');
+                console.error('Error stack:', error.stack);
+                console.error('API Base URL:', API_BASE);
+                
+                // Set error state in UI
+                document.getElementById('totalInvoices').textContent = 'Error';
+                document.getElementById('totalRevenue').textContent = 'Error';
+                document.getElementById('totalItems').textContent = 'Error';
+                document.getElementById('lowStockItems').textContent = 'Error';
+                
+                showNotification('Connection Error', 'Cannot connect to server. Please check if backend is running at ' + API_BASE, 'error');
             }
         }
 
@@ -1909,36 +3238,37 @@
             }
 
             itemsTable.innerHTML = `
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item Name</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Unit</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${items.map(item => `
-                                <tr>
-                                    <td><strong>${item.item_name}</strong></td>
-                                    <td><strong style="color: #138808;">₹${item.item_price.toFixed(2)}</strong></td>
-                                    <td><span style="padding: 4px 12px; background: ${item.stock > 10 ? '#d4edda' : item.stock > 0 ? '#fff3cd' : '#f8d7da'}; color: ${item.stock > 10 ? '#155724' : item.stock > 0 ? '#856404' : '#721c24'}; border-radius: 6px; font-weight: 600;">${item.stock}</span></td>
-                                    <td><span style="padding: 4px 10px; background: #e9ecef; border-radius: 6px; font-weight: 500;">${item.unit || '-'}</span></td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button onclick="showItemQR('${item._id}')" class="btn btn-success" title="Show QR Code">📱</button>
-                                            <button onclick="updateItemStock('${item._id}', '${item.item_name}')" class="btn btn-warning" title="Update Stock">📦</button>
-                                            <button onclick="updateItemPrice('${item._id}', '${item.item_name}')" class="btn btn-primary" title="Update Price">💰</button>
-                                            <button onclick="deleteItem('${item._id}', '${item.item_name}')" class="btn btn-danger" title="Delete Item">🗑️</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                <div class="items-grid">
+                    ${items.map(item => {
+                        const stockClass = item.stock > 10 ? 'high' : item.stock > 0 ? 'medium' : 'low';
+                        return `
+                            <div class="item-card">
+                                <div class="item-card-header">
+                                    <h3 class="item-card-title">📦 ${item.item_name}</h3>
+                                    <button onclick="showItemQR('${item._id}')" class="item-card-qr-btn" title="Show QR Code">📱</button>
+                                </div>
+                                <div class="item-card-body">
+                                    <div class="item-card-info">
+                                        <span class="item-card-label">💰 Price</span>
+                                        <span class="item-card-value item-price">₹${item.item_price.toFixed(2)}</span>
+                                    </div>
+                                    <div class="item-card-info">
+                                        <span class="item-card-label">📦 Stock</span>
+                                        <span class="item-stock ${stockClass}">${item.stock}</span>
+                                    </div>
+                                    <div class="item-card-info">
+                                        <span class="item-card-label">📏 Unit</span>
+                                        <span class="item-unit">${item.unit || '-'}</span>
+                                    </div>
+                                </div>
+                                <div class="item-card-actions">
+                                    <button onclick="updateItemStock('${item._id}', '${item.item_name}')" class="btn btn-warning" title="Update Stock">📦 Stock</button>
+                                    <button onclick="updateItemPrice('${item._id}', '${item.item_name}')" class="btn btn-primary" title="Update Price">💰 Price</button>
+                                    <button onclick="deleteItem('${item._id}', '${item.item_name}')" class="btn btn-danger" title="Delete Item">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
         }
@@ -2192,37 +3522,45 @@
                 if (data.success && data.customers.length > 0) {
                     const customers = data.customers;
                     customersTable.innerHTML = `
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Customer Name</th>
-                                    <th>Phone</th>
-                                    <th>Email</th>
-                                    <th>Address</th>
-                                    <th>Total Purchases</th>
-                                    <th>Total Spent</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <div class="customers-grid">
                             ${customers.map(customer => `
-                                <tr>
-                                    <td style="font-weight: bold;">${customer.customer_name}</td>
-                                    <td>📱 ${customer.customer_phone}</td>
-                                    <td>${customer.customer_email || '-'}</td>
-                                    <td>${customer.customer_address || '-'}</td>
-                                    <td style="text-align: center;">${customer.total_purchases || 0}</td>
-                                    <td style="color: #138808; font-weight: bold;">${formatCurrency(customer.total_spent || 0)}</td>
-                                    <td class="actions-column">
-                                        <div class="action-buttons">
+                                <div class="customer-card">
+                                    <div class="customer-card-header">
+                                        <h3 class="customer-card-name">👤 ${customer.customer_name}</h3>
+                                    </div>
+                                    <div class="customer-card-body">
+                                        <div class="customer-card-info">
+                                            <span class="customer-card-label">📱 Phone:</span>
+                                            <span class="customer-card-value">${customer.customer_phone}</span>
+                                        </div>
+                                        <div class="customer-card-info">
+                                            <span class="customer-card-label">📧 Email:</span>
+                                            <span class="customer-card-value">${customer.customer_email || 'Not provided'}</span>
+                                        </div>
+                                        <div class="customer-card-info">
+                                            <span class="customer-card-label">🏠 Address:</span>
+                                            <span class="customer-card-value">${customer.customer_address || 'Not provided'}</span>
+                                        </div>
+                                    </div>
+                                    <div class="customer-card-footer">
+                                        <div class="customer-stats">
+                                            <div class="customer-stat">
+                                                <span class="customer-stat-value">${customer.total_purchases || 0}</span>
+                                                <span class="customer-stat-label">Purchases</span>
+                                            </div>
+                                            <div class="customer-stat">
+                                                <span class="customer-stat-value">${formatCurrency(customer.total_spent || 0)}</span>
+                                                <span class="customer-stat-label">Total Spent</span>
+                                            </div>
+                                        </div>
+                                        <div class="customer-card-actions">
                                             <button onclick="editCustomer('${customer._id}')" class="btn-icon" title="Edit Customer">✏️</button>
                                             <button onclick="deleteCustomer('${customer._id}', '${customer.customer_name}')" class="btn-icon" title="Delete Customer">🗑️</button>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </div>
                             `).join('')}
-                            </tbody>
-                        </table>
+                        </div>
                     `;
                 } else {
                     customersTable.innerHTML = `
@@ -2258,37 +3596,45 @@
                 if (data.success && data.customers.length > 0) {
                     const customers = data.customers;
                     customersTable.innerHTML = `
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Customer Name</th>
-                                    <th>Phone</th>
-                                    <th>Email</th>
-                                    <th>Address</th>
-                                    <th>Total Purchases</th>
-                                    <th>Total Spent</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <div class="customers-grid">
                             ${customers.map(customer => `
-                                <tr>
-                                    <td style="font-weight: bold;">${customer.customer_name}</td>
-                                    <td>📱 ${customer.customer_phone}</td>
-                                    <td>${customer.customer_email || '-'}</td>
-                                    <td>${customer.customer_address || '-'}</td>
-                                    <td style="text-align: center;">${customer.total_purchases || 0}</td>
-                                    <td style="color: #138808; font-weight: bold;">${formatCurrency(customer.total_spent || 0)}</td>
-                                    <td class="actions-column">
-                                        <div class="action-buttons">
+                                <div class="customer-card">
+                                    <div class="customer-card-header">
+                                        <h3 class="customer-card-name">👤 ${customer.customer_name}</h3>
+                                    </div>
+                                    <div class="customer-card-body">
+                                        <div class="customer-card-info">
+                                            <span class="customer-card-label">📱 Phone:</span>
+                                            <span class="customer-card-value">${customer.customer_phone}</span>
+                                        </div>
+                                        <div class="customer-card-info">
+                                            <span class="customer-card-label">📧 Email:</span>
+                                            <span class="customer-card-value">${customer.customer_email || 'Not provided'}</span>
+                                        </div>
+                                        <div class="customer-card-info">
+                                            <span class="customer-card-label">🏠 Address:</span>
+                                            <span class="customer-card-value">${customer.customer_address || 'Not provided'}</span>
+                                        </div>
+                                    </div>
+                                    <div class="customer-card-footer">
+                                        <div class="customer-stats">
+                                            <div class="customer-stat">
+                                                <span class="customer-stat-value">${customer.total_purchases || 0}</span>
+                                                <span class="customer-stat-label">Purchases</span>
+                                            </div>
+                                            <div class="customer-stat">
+                                                <span class="customer-stat-value">${formatCurrency(customer.total_spent || 0)}</span>
+                                                <span class="customer-stat-label">Total Spent</span>
+                                            </div>
+                                        </div>
+                                        <div class="customer-card-actions">
                                             <button onclick="editCustomer('${customer._id}')" class="btn-icon" title="Edit Customer">✏️</button>
                                             <button onclick="deleteCustomer('${customer._id}', '${customer.customer_name}')" class="btn-icon" title="Delete Customer">🗑️</button>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </div>
                             `).join('')}
-                            </tbody>
-                        </table>
+                        </div>
                     `;
                 } else {
                     customersTable.innerHTML = `
@@ -2628,7 +3974,6 @@
             const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
             const discountRate = parseFloat(document.getElementById('discountRate').value) || 0;
             const sendEmail = document.getElementById('sendEmailCheckbox').checked;
-            const paymentMethod = document.getElementById('paymentMethod').value;
             const notes = document.getElementById('invoiceNotes').value.trim();
 
             if (!customerName || !customerPhone || !customerAddress) {
@@ -2661,7 +4006,6 @@
                         items: invoiceItems,
                         tax_rate: taxRate,
                         discount_rate: discountRate,
-                        payment_method: paymentMethod,
                         notes: notes,
                         send_email: sendEmail
                     })
@@ -2704,7 +4048,6 @@
             document.getElementById('customerEmail').readOnly = false;
             document.getElementById('customerAddress').readOnly = false;
             document.getElementById('sendEmailCheckbox').checked = false;
-            document.getElementById('paymentMethod').value = 'cash';
             document.getElementById('invoiceNotes').value = '';
             document.getElementById('taxRate').value = '0';
             document.getElementById('discountRate').value = '0';
@@ -2742,39 +4085,34 @@
             const invoicesTable = document.getElementById('invoicesTable');
             
             if (invoices.length === 0) {
-                invoicesTable.innerHTML = '<div class="empty-state"><h3>No invoices found</h3><p>Create your first invoice to get started</p></div>';
+                invoicesTable.innerHTML = '<div class="empty-state"><h3>📋 No Invoices Found</h3><p>Create your first invoice to get started</p></div>';
                 return;
             }
 
             invoicesTable.innerHTML = `
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Invoice ID</th>
-                                <th>Customer</th>
-                                <th>Date</th>
-                                <th>Total</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${invoices.map(invoice => `
-                                <tr>
-                                    <td><strong style="color: #138808;">#${invoice.invoice_id}</strong></td>
-                                    <td><strong>${invoice.customer_name}</strong></td>
-                                    <td>${formatDate(invoice.order_date)}</td>
-                                    <td><strong style="color: #138808; font-size: 1.1em;">₹${invoice.total.toFixed(2)}</strong></td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button onclick="viewInvoiceDetails(${invoice.invoice_id})" class="btn btn-primary" title="View Details">👁️ View</button>
-                                            <button onclick="downloadInvoicePDF(${invoice.invoice_id})" class="btn btn-success" title="Download PDF">📄 PDF</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                <div class="invoices-grid">
+                    ${invoices.map(invoice => `
+                        <div class="invoice-card">
+                            <div class="invoice-card-header">
+                                <h3 class="invoice-card-id">#${invoice.invoice_id}</h3>
+                                <span class="invoice-card-date">📅 ${formatDate(invoice.order_date)}</span>
+                            </div>
+                            <div class="invoice-card-body">
+                                <div class="invoice-card-customer">
+                                    <span>👤</span>
+                                    <span>${invoice.customer_name}</span>
+                                </div>
+                                <div class="invoice-card-total">
+                                    <span class="invoice-card-total-label">Total Amount</span>
+                                    <span class="invoice-card-total-value">₹${invoice.total.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="invoice-card-actions">
+                                <button onclick="viewInvoiceDetails(${invoice.invoice_id})" class="btn btn-primary" title="View Details">👁️ View</button>
+                                <button onclick="downloadInvoicePDF(${invoice.invoice_id})" class="btn btn-success" title="Download PDF">📄 PDF</button>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         }
@@ -2899,197 +4237,96 @@
         function generateQRPrintPage(qrCodesData) {
             const printWindow = window.open('', '_blank');
             
-            // Create HTML for print page with exactly 40 QR code slots (8 rows x 5 columns)
-            let qrCardsHTML = '';
-            const totalSlots = 40; // 8 rows x 5 columns
+            // Create pages with 40 QR codes per page (8 rows x 5 columns)
+            const qrCodesPerPage = 40;
+            const totalPages = Math.ceil(qrCodesData.length / qrCodesPerPage);
+            let allPagesHTML = '';
             
-            for (let i = 0; i < totalSlots; i++) {
-                if (i < qrCodesData.length) {
-                    const item = qrCodesData[i];
-                    qrCardsHTML += `
-                        <div class="qr-card">
-                            <img src="data:image/png;base64,${item.qrCode}" alt="QR Code">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-price">Rs ${item.price.toFixed(2)} / ${item.unit}</div>
-                        </div>
-                    `;
-                } else {
-                    // Empty slot for remaining spaces
-                    qrCardsHTML += `
-                        <div class="qr-card empty">
-                            <div class="empty-text">-</div>
-                        </div>
-                    `;
+            for (let page = 0; page < totalPages; page++) {
+                let qrCardsHTML = '';
+                const startIndex = page * qrCodesPerPage;
+                const endIndex = Math.min(startIndex + qrCodesPerPage, qrCodesData.length);
+                
+                // Fill current page with QR codes
+                for (let i = 0; i < qrCodesPerPage; i++) {
+                    const dataIndex = startIndex + i;
+                    if (dataIndex < qrCodesData.length) {
+                        const item = qrCodesData[dataIndex];
+                        qrCardsHTML += `
+                            <div class="qr-card">
+                                <img src="data:image/png;base64,${item.qrCode}" alt="QR Code">
+                                <div class="item-name">${item.name}</div>
+                                <div class="item-price">Rs ${item.price.toFixed(2)} / ${item.unit}</div>
+                            </div>
+                        `;
+                    } else {
+                        // Empty slot for remaining spaces on last page
+                        qrCardsHTML += `
+                            <div class="qr-card empty">
+                                <div class="empty-text">-</div>
+                            </div>
+                        `;
+                    }
                 }
+                
+                // Add page HTML
+                allPagesHTML += 
+                    '<div class="page" style="' + (page > 0 ? 'page-break-before: always;' : '') + '">' +
+                        '<div class="header">' +
+                            '<h1>🏪 Item QR Codes - Invoice Management System</h1>' +
+                            '<p>Page ' + (page + 1) + ' of ' + totalPages + ' | Items: ' + (startIndex + 1) + '-' + endIndex + ' of ' + qrCodesData.length + ' | Date: ' + new Date().toLocaleDateString() + '</p>' +
+                        '</div>' +
+                        '<div class="qr-grid">' +
+                            qrCardsHTML +
+                        '</div>' +
+                        '<div class="footer">' +
+                            '<p>📱 Scan any QR code to quickly add item to invoice | Page ' + (page + 1) + '/' + totalPages + '</p>' +
+                        '</div>' +
+                    '</div>';
             }
             
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>QR Codes - Invoice System</title>
-                    <style>
-                        * {
-                            margin: 0;
-                            padding: 0;
-                            box-sizing: border-box;
-                        }
-                        
-                        @page {
-                            size: A4 landscape;
-                            margin: 10mm;
-                        }
-                        
-                        body {
-                            font-family: Arial, sans-serif;
-                            padding: 10px;
-                            background: white;
-                        }
-                        
-                        .header {
-                            text-align: center;
-                            margin-bottom: 15px;
-                            padding-bottom: 10px;
-                            border-bottom: 3px solid #138808;
-                        }
-                        
-                        .header h1 {
-                            color: #138808;
-                            font-size: 24px;
-                            margin-bottom: 5px;
-                        }
-                        
-                        .header p {
-                            color: #666;
-                            font-size: 14px;
-                        }
-                        
-                        .qr-grid {
-                            display: grid;
-                            grid-template-columns: repeat(5, 1fr);
-                            grid-template-rows: repeat(8, 1fr);
-                            gap: 8px;
-                            width: 100%;
-                            height: calc(100vh - 100px);
-                        }
-                        
-                        .qr-card {
-                            border: 2px solid #138808;
-                            border-radius: 8px;
-                            padding: 8px;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                            background: white;
-                            page-break-inside: avoid;
-                        }
-                        
-                        .qr-card.empty {
-                            border: 2px dashed #ddd;
-                            background: #f9f9f9;
-                        }
-                        
-                        .qr-card img {
-                            width: 100%;
-                            max-width: 120px;
-                            height: auto;
-                            margin-bottom: 5px;
-                        }
-                        
-                        .item-name {
-                            font-weight: bold;
-                            font-size: 11px;
-                            text-align: center;
-                            color: #138808;
-                            margin-bottom: 3px;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                            width: 100%;
-                        }
-                        
-                        .item-price {
-                            font-size: 10px;
-                            color: #666;
-                            text-align: center;
-                        }
-                        
-                        .empty-text {
-                            color: #ccc;
-                            font-size: 24px;
-                            font-weight: bold;
-                        }
-                        
-                        .footer {
-                            text-align: center;
-                            margin-top: 15px;
-                            padding-top: 10px;
-                            border-top: 2px solid #138808;
-                            color: #666;
-                            font-size: 11px;
-                        }
-                        
-                        @media print {
-                            body {
-                                padding: 5px;
-                            }
-                            
-                            .header h1 {
-                                font-size: 20px;
-                            }
-                            
-                            .qr-grid {
-                                gap: 5px;
-                            }
-                            
-                            .qr-card {
-                                padding: 5px;
-                            }
-                            
-                            .no-print {
-                                display: none;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>🏪 Item QR Codes - Invoice Management System</h1>
-                        <p>Total Items: ${qrCodesData.length} | Grid: 8 Rows × 5 Columns (40 slots) | Date: ${new Date().toLocaleDateString()}</p>
-                    </div>
-                    
-                    <div class="qr-grid">
-                        ${qrCardsHTML}
-                    </div>
-                    
-                    <div class="footer">
-                        <p>📱 Scan any QR code to quickly add item to invoice | Powered by Invoice Management System</p>
-                    </div>
-                    
-                    <div class="no-print" style="text-align: center; margin-top: 20px;">
-                        <button onclick="window.print()" style="padding: 12px 30px; background: #138808; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">
-                            🖨️ Print
-                        </button>
-                        <button onclick="window.close()" style="padding: 12px 30px; background: #dc3545; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
-                            ✖ Close
-                        </button>
-                    </div>
-                    
-                    <script>
-                        // Auto print after page loads
-                        window.onload = function() {
-                            setTimeout(() => {
-                                window.print();
-                            }, 500);
-                        };
-                    </script>
-                </body>
-                </html>
-            `);
+            printWindow.document.write(
+                '<!DOCTYPE html>' +
+                '<html>' +
+                '<head>' +
+                    '<title>QR Codes - Invoice System</title>' +
+                    '<style>' +
+                        '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+                        '@page { size: A4 landscape; margin: 10mm; }' +
+                        'body { font-family: Arial, sans-serif; padding: 10px; background: white; }' +
+                        '.page { min-height: 100vh; display: flex; flex-direction: column; }' +
+                        '.header { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 3px solid #138808; }' +
+                        '.header h1 { color: #138808; font-size: 24px; margin-bottom: 5px; }' +
+                        '.header p { color: #666; font-size: 14px; }' +
+                        '.qr-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(8, 1fr); gap: 8px; width: 100%; flex: 1; }' +
+                        '.qr-card { border: 2px solid #138808; border-radius: 8px; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; page-break-inside: avoid; }' +
+                        '.qr-card.empty { border: 2px dashed #ddd; background: #f9f9f9; }' +
+                        '.qr-card img { width: 100%; max-width: 120px; height: auto; margin-bottom: 5px; }' +
+                        '.item-name { font-weight: bold; font-size: 11px; text-align: center; color: #138808; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }' +
+                        '.item-price { font-size: 10px; color: #666; text-align: center; }' +
+                        '.empty-text { color: #ccc; font-size: 24px; font-weight: bold; }' +
+                        '.footer { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 2px solid #138808; color: #666; font-size: 11px; }' +
+                        '@media print { body { padding: 5px; } .header h1 { font-size: 20px; } .qr-grid { gap: 5px; } .qr-card { padding: 5px; } .no-print { display: none; } }' +
+                    '</style>' +
+                '</head>' +
+                '<body>' +
+                    allPagesHTML +
+                    '<div class="no-print" style="text-align: center; margin-top: 20px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 10px;">' +
+                        '<p style="margin-bottom: 10px; font-weight: bold; color: #138808;">Total: ' + qrCodesData.length + ' QR Codes | ' + totalPages + ' Pages</p>' +
+                        '<button onclick="window.print()" style="padding: 12px 30px; background: #138808; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">🖨️ Print All</button>' +
+                        '<button onclick="window.close()" style="padding: 12px 30px; background: #dc3545; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">✖ Close</button>' +
+                    '</div>' +
+                    '<scr' + 'ipt>' +
+                        'window.onload = function() {' +
+                            'setTimeout(function() { window.print(); }, 500);' +
+                        '};' +
+                    '</scr' + 'ipt>' +
+                '</body>' +
+                '</html>'
+            );
             
             printWindow.document.close();
-            showNotification('QR Codes Ready! 🎉', `Generated ${qrCodesData.length} QR codes in 8x5 grid`, 'success');
+            showNotification('QR Codes Ready! 🎉', 'Generated ' + qrCodesData.length + ' QR codes across ' + totalPages + ' pages', 'success');
         }
         
         async function showItemQR(itemId) {
@@ -3135,30 +4372,30 @@
             const info = document.getElementById('qrItemInfo');
             
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                    <head>
-                        <title>Print QR Code</title>
-                        <style>
-                            body { text-align: center; font-family: Arial; padding: 20px; }
-                            img { max-width: 400px; border: 2px solid #138808; padding: 20px; }
-                            h2 { color: #138808; }
-                        </style>
-                    </head>
-                    <body>
-                        <h2>Item QR Code</h2>
-                        <img src="${img.src}">
-                        <h3>${info.textContent}</h3>
-                        <p>Scan this QR code to quickly add item to invoice</p>
-                        <script>
-                            window.onload = function() {
-                                window.print();
-                                setTimeout(() => window.close(), 100);
-                            }
-                        <\/script>
-                    </body>
-                </html>
-            `);
+            printWindow.document.write(
+                '<html>' +
+                    '<head>' +
+                        '<title>Print QR Code</title>' +
+                        '<style>' +
+                            'body { text-align: center; font-family: Arial; padding: 20px; }' +
+                            'img { max-width: 400px; border: 2px solid #138808; padding: 20px; }' +
+                            'h2 { color: #138808; }' +
+                        '</style>' +
+                    '</head>' +
+                    '<body>' +
+                        '<h2>Item QR Code</h2>' +
+                        '<img src="' + img.src + '">' +
+                        '<h3>' + info.textContent + '</h3>' +
+                        '<p>Scan this QR code to quickly add item to invoice</p>' +
+                        '<scr' + 'ipt>' +
+                            'window.onload = function() {' +
+                                'window.print();' +
+                                'setTimeout(function() { window.close(); }, 100);' +
+                            '}' +
+                        '</scr' + 'ipt>' +
+                    '</body>' +
+                '</html>'
+            );
             printWindow.document.close();
         }
         

@@ -391,10 +391,8 @@
     </div>
 
     <script>
-        // Auto-detect environment: use localhost if running locally, otherwise use Render URL
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://127.0.0.1:5000' 
-            : 'https://invoice-system-vpmz.onrender.com';
+        // Backend URL - Always use Render production server
+        const API_BASE = 'https://invoice-system-vpmz.onrender.com';
         console.log('API Base URL:', API_BASE);
         let currentEmail = '';
         let resetTimer = null;

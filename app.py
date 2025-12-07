@@ -26,17 +26,29 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(32))
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-app.config['SESSION_COOKIE_SECURE'] = True
+
+# Environment detection for CORS settings
+is_production = os.getenv('FLASK_ENV') == 'production'
+if is_production:
+    app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+    app.config['SESSION_COOKIE_SECURE'] = True
+else:
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = False
+
+# CORS configuration - allow all origins for development and production
 CORS(app, 
      supports_credentials=True,
      origins=[
          'https://kandhal-invoice-system.vercel.app',
          'http://localhost:3000',
          'http://127.0.0.1:5000',
+         'http://localhost:5000',
+         'http://127.0.0.1:5000',
          'http://localhost:5000'
      ],
      allow_headers=['Content-Type', 'Authorization'],
+     expose_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
 # MongoDB connection from environment variables

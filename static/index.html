@@ -2705,6 +2705,31 @@
             return false;
         }
         
+        // Retry helper for handling Render free tier wake-up delays
+        async function fetchWithRetry(url, options = {}, maxRetries = 3, retryDelay = 2000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    
+                    // If 502 or 503 (service waking up), retry
+                    if ((response.status === 502 || response.status === 503) && i < maxRetries - 1) {
+                        console.log(`Server waking up (${response.status}), retrying in ${retryDelay}ms... (attempt ${i + 1}/${maxRetries})`);
+                        await new Promise(resolve => setTimeout(resolve, retryDelay));
+                        continue;
+                    }
+                    
+                    return response;
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        console.log(`Network error, retrying in ${retryDelay}ms... (attempt ${i + 1}/${maxRetries})`, error);
+                        await new Promise(resolve => setTimeout(resolve, retryDelay));
+                        continue;
+                    }
+                    throw error;
+                }
+            }
+        }
+        
         // Check authentication on page load
         async function checkAuth() {
             const sessionToken = localStorage.getItem('session_token');
@@ -4003,7 +4028,9 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/api/invoices`, {
+                showNotification('Creating Invoice...', 'Please wait, generating your invoice', 'info');
+                
+                const response = await fetchWithRetry(`${API_BASE}/api/invoices`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -4020,7 +4047,7 @@
                         notes: notes,
                         send_email: sendEmail
                     })
-                });
+                }, 3, 3000); // 3 retries with 3 second delay
 
                 const data = await response.json();
 
@@ -4044,7 +4071,7 @@
                 }
             } catch (error) {
                 console.error('Error creating invoice:', error);
-                showPopup('Error ❌', 'Failed to create invoice. Please try again.', 'alert');
+                showPopup('Error ❌', 'Failed to create invoice. The server might be waking up - please try again in a moment.', 'alert');
             }
         }
 

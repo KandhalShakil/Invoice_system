@@ -2757,14 +2757,14 @@
         }
         
         // Retry helper for handling Render free tier wake-up delays
-        async function fetchWithRetry(url, options = {}, maxRetries = 3, retryDelay = 2000) {
+        async function fetchWithRetry(url, options = {}, maxRetries = 4, retryDelay = 2000) {
             let lastError = null;
             
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const controller = new AbortController();
-                    // Longer timeout for invoice creation (50 seconds), normal for others
-                    const timeoutMs = url.includes('/api/invoices') && options.method === 'POST' ? 50000 : 30000;
+                    // Longer timeout for invoice creation (90 seconds), normal for others
+                    const timeoutMs = url.includes('/api/invoices') && options.method === 'POST' ? 90000 : 30000;
                     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
                     
                     const response = await fetch(url, {
@@ -2794,7 +2794,7 @@
                 } catch (error) {
                     lastError = error;
                     
-                    // If it's an AbortError and not the last retry, try again
+                    // If it's an AbortError and not the last retry, try again with even longer timeout
                     if (error.name === 'AbortError' && i < maxRetries - 1) {
                         console.log(`Request timeout, retrying with longer timeout... (attempt ${i + 1}/${maxRetries})`);
                         await new Promise(resolve => setTimeout(resolve, retryDelay));
@@ -4136,6 +4136,12 @@
                     })
                 }, 4, 2000); // 4 retries with 2 second delay
 
+                // Check if response is ok before parsing JSON
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 if (data.success) {
@@ -4154,14 +4160,21 @@
                     );
                     clearInvoiceForm();
                     // Reload invoices list
-                    displayInvoices();
+                    await loadInvoices();
                 } else {
                     showPopup('Error ❌', 'Error creating invoice: ' + data.error, 'alert');
                 }
             } catch (error) {
                 console.error('Error creating invoice:', error);
                 
-                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                // Check if invoice was created despite error (refresh invoices to see)
+                await loadInvoices();
+                
+                if (error.name === 'AbortError') {
+                    showPopup('Timeout ⏱️', 
+                        'The request took too long. However, the invoice may have been created. Please check the "All Invoices" section to verify.\n\nIf the invoice was created, please do not submit again to avoid duplicates.', 
+                        'alert');
+                } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
                     showPopup('Connection Error ❌', 
                         'Unable to connect to server. This could be due to:\n\n' +
                         '1. Server is starting up (try again in 30 seconds)\n' +
@@ -4170,7 +4183,9 @@
                         'Please wait a moment and try again.', 
                         'alert');
                 } else {
-                    showPopup('Error ❌', 'Failed to create invoice. Please try again in a moment.', 'alert');
+                    showPopup('Error ❌', 
+                        'Error: ' + error.message + '\n\nPlease check the "All Invoices" section to see if the invoice was created.\n\nIf created, do not submit again.',
+                        'alert');
                 }
             }
         }
@@ -4221,6 +4236,13 @@
 
         function displayInvoices(invoices) {
             const invoicesTable = document.getElementById('invoicesTable');
+            
+            // Guard against undefined/null invoices
+            if (!invoices || !Array.isArray(invoices)) {
+                console.warn('displayInvoices called with invalid data:', invoices);
+                invoicesTable.innerHTML = '<div class="empty-state"><h3>⚠️ Unable to load invoices</h3><p>Please refresh the page</p></div>';
+                return;
+            }
             
             if (invoices.length === 0) {
                 invoicesTable.innerHTML = '<div class="empty-state"><h3>📋 No Invoices Found</h3><p>Create your first invoice to get started</p></div>';

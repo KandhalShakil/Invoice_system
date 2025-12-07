@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Shakil's Grocery Shop - MongoDB Edition</title>
+    <title>📋 Invoice Management System - Smart Business Solution</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23138808' width='100' height='100' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>📋</text></svg>">
+    
     <style>
         * {
             margin: 0;
@@ -2335,8 +2339,13 @@
 <body>
     <div class="container">
         <div class="header" id="mainHeader">
-            <h1 id="shopNameHeader">🏪 Loading...</h1>
-            <p>MongoDB-Powered Invoice Management System</p>
+            <div class="logo-container">
+                <div class="logo-icon">📋</div>
+                <div>
+                    <h1>Invoice Management System</h1>
+                    <p id="shopNameHeader">Loading...</p>
+                </div>
+            </div>
         </div>
 
         <div class="nav-tabs">
@@ -2818,7 +2827,7 @@
                 
                 // Update shop name in header
                 document.getElementById('shopNameHeader').textContent = `🏪 ${shopName}`;
-                document.title = `${shopName} - Invoice System`;
+                document.title = `📋 ${shopName} - Invoice System`;
                 
                 // Store shop details if from API
                 if (data.shop_name) {

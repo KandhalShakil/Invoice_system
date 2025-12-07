@@ -21,6 +21,8 @@ import qrcode
 from io import BytesIO
 import base64
 import threading
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To, Content
 
 # Load environment variables from .env file
 load_dotenv()
@@ -128,11 +130,16 @@ try:
 except Exception as e:
     print(f"Migration error: {e}")
 
-# SMTP Configuration from environment variables
+# Email Configuration - Support both SMTP and SendGrid
 SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
 SMTP_EMAIL = os.getenv('SMTP_EMAIL')
 SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+
+# Determine which email service to use
+USE_SENDGRID = bool(SENDGRID_API_KEY)
+USE_SMTP = bool(SMTP_EMAIL and SMTP_PASSWORD and not USE_SENDGRID)
 
 # Health check endpoint
 @app.route('/health', methods=['GET', 'OPTIONS'])
@@ -156,21 +163,19 @@ def health_check():
             'timestamp': datetime.now().isoformat()
         }), 500
 
-if not SMTP_EMAIL or not SMTP_PASSWORD:
-    print("⚠️ WARNING: SMTP credentials not found in .env file. Email functionality will not work.")
-else:
+if USE_SENDGRID:
+    print(f"✅ SendGrid Email configured: {SMTP_EMAIL}")
+elif USE_SMTP:
     print(f"✅ SMTP configured: {SMTP_EMAIL} via {SMTP_SERVER}:{SMTP_PORT}")
+else:
+    print("⚠️ WARNING: No email service configured. Email functionality will not work.")
+    print("   Configure either SENDGRID_API_KEY or SMTP credentials")
+
 
 # Background email sender function
 def send_invoice_email_async(customer_email, invoice_id, invoice_doc, shop_name, shop_address, shop_phone, items, subtotal, tax, discount, total, tax_rate, discount_rate, customer_name, customer_address, customer_number):
     """Send invoice email in background thread"""
     try:
-        # Prepare email
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f'📄 Invoice #{invoice_id} from {shop_name} | Invoice Management System'
-        msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
-        msg['To'] = customer_email
-        
         # Create items HTML
         items_html = ""
         for item in items:
@@ -183,7 +188,7 @@ def send_invoice_email_async(customer_email, invoice_id, invoice_doc, shop_name,
             </tr>
             """
         
-        html = f"""
+        html_content = f"""
         <html>
           <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
             <div style="max-width: 700px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -258,44 +263,60 @@ def send_invoice_email_async(customer_email, invoice_id, invoice_doc, shop_name,
         </html>
         """
         
-        part = MIMEText(html, 'html')
-        msg.attach(part)
+        subject = f'📄 Invoice #{invoice_id} from {shop_name} | Invoice Management System'
         
-        # Send email with detailed logging
         print(f"📧 Attempting to send email...")
         print(f"   To: {customer_email}")
-        print(f"   From: {SMTP_EMAIL}")
-        print(f"   SMTP Server: {SMTP_SERVER}:{SMTP_PORT}")
+        print(f"   Invoice ID: {invoice_id}")
         
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
-            server.set_debuglevel(0)  # Set to 1 for verbose SMTP debug
-            print(f"   🔐 Starting TLS...")
-            server.starttls()
-            print(f"   🔑 Logging in...")
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            print(f"   📤 Sending message...")
-            server.send_message(msg)
+        # Use SendGrid if available, otherwise fall back to SMTP
+        if USE_SENDGRID:
+            print(f"   Using SendGrid API")
+            message = Mail(
+                from_email=Email(SMTP_EMAIL, shop_name),
+                to_emails=To(customer_email),
+                subject=subject,
+                html_content=Content("text/html", html_content)
+            )
+            sg = SendGridAPIClient(SENDGRID_API_KEY)
+            response = sg.send(message)
+            print(f"✅ SendGrid email sent successfully!")
+            print(f"   Status Code: {response.status_code}")
+            
+        elif USE_SMTP:
+            print(f"   Using SMTP: {SMTP_SERVER}:{SMTP_PORT}")
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
+            msg['To'] = customer_email
+            
+            part = MIMEText(html_content, 'html')
+            msg.attach(part)
+            
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
+                print(f"   🔐 Starting TLS...")
+                server.starttls()
+                print(f"   🔑 Logging in...")
+                server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                print(f"   📤 Sending message...")
+                server.send_message(msg)
+            print(f"✅ SMTP email sent successfully!")
+        else:
+            print(f"❌ No email service configured!")
+            return
         
-        print(f"✅ Invoice email sent successfully!")
         print(f"   To: {customer_email}")
         print(f"   Shop: {shop_name}")
         print(f"   Invoice ID: {invoice_id}")
         
-    except smtplib.SMTPAuthenticationError as auth_error:
-        print(f"❌ SMTP Authentication Error!")
-        print(f"   Error: {auth_error}")
-        print(f"   SMTP Email: {SMTP_EMAIL}")
-        print(f"   Check if email and password are correct")
-    except smtplib.SMTPException as smtp_error:
-        print(f"❌ SMTP Error sending invoice email")
-        print(f"   Error: {smtp_error}")
-        print(f"   To: {customer_email}")
     except Exception as email_error:
-        print(f"❌ Failed to send invoice email to {customer_email}")
+        print(f"❌ Failed to send invoice email!")
+        print(f"   To: {customer_email}")
         print(f"   Error Type: {type(email_error).__name__}")
         print(f"   Error: {email_error}")
         print(f"   Shop: {shop_name}")
         print(f"   Invoice ID: {invoice_id}")
+
 
 # Authentication endpoints
 @app.route('/api/auth/send-signup-otp', methods=['POST'])
@@ -730,10 +751,10 @@ def test_email():
         if not test_email_addr:
             return jsonify({"success": False, "error": "Email address is required"}), 400
         
-        if not SMTP_EMAIL or not SMTP_PASSWORD:
+        if not (USE_SENDGRID or USE_SMTP):
             return jsonify({
                 "success": False, 
-                "error": "SMTP credentials not configured on server"
+                "error": "No email service configured on server"
             }), 500
         
         # Get shop details
@@ -741,12 +762,7 @@ def test_email():
         shop_info = auth_collection.find_one({"session_token": session_token})
         shop_name = shop_info.get('shop_name', 'Invoice System') if shop_info else 'Invoice System'
         
-        # Prepare test email
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f'✅ Test Email from {shop_name} - Invoice Management System'
-        msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
-        msg['To'] = test_email_addr
-        
+        subject = f'✅ Test Email from {shop_name} - Invoice Management System'
         html = f"""
         <html>
           <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
@@ -758,7 +774,7 @@ def test_email():
               <p style="font-size: 16px; color: #333;">This is a test email from <strong>{shop_name}</strong>.</p>
               <p style="font-size: 16px; color: #333;">Your email configuration is working correctly! 🎉</p>
               <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                <p style="margin: 5px 0; color: #666;"><strong>SMTP Server:</strong> {SMTP_SERVER}</p>
+                <p style="margin: 5px 0; color: #666;"><strong>Service:</strong> {'SendGrid' if USE_SENDGRID else 'SMTP'}</p>
                 <p style="margin: 5px 0; color: #666;"><strong>From:</strong> {SMTP_EMAIL}</p>
                 <p style="margin: 5px 0; color: #666;"><strong>Test Date:</strong> {datetime.now().strftime('%d %B %Y, %I:%M %p')}</p>
               </div>
@@ -770,27 +786,40 @@ def test_email():
         </html>
         """
         
-        part = MIMEText(html, 'html')
-        msg.attach(part)
+        # Send email via SendGrid or SMTP
+        if USE_SENDGRID:
+            message = Mail(
+                from_email=Email(SMTP_EMAIL, shop_name),
+                to_emails=To(test_email_addr),
+                subject=subject,
+                html_content=Content("text/html", html)
+            )
+            sg = SendGridAPIClient(SENDGRID_API_KEY)
+            response = sg.send(message)
+            print(f"✅ SendGrid test email sent to {test_email_addr}")
+            return jsonify({
+                "success": True,
+                "message": f"Test email sent successfully via SendGrid to {test_email_addr}"
+            })
+        else:
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
+            msg['To'] = test_email_addr
+            part = MIMEText(html, 'html')
+            msg.attach(part)
+            
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
+                server.starttls()
+                server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                server.send_message(msg)
+            
+            print(f"✅ SMTP test email sent to {test_email_addr}")
+            return jsonify({
+                "success": True,
+                "message": f"Test email sent successfully via SMTP to {test_email_addr}"
+            })
         
-        # Send email
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.send_message(msg)
-        
-        print(f"✅ Test email sent successfully to {test_email_addr}")
-        return jsonify({
-            "success": True,
-            "message": f"Test email sent successfully to {test_email_addr}"
-        })
-        
-    except smtplib.SMTPAuthenticationError:
-        print(f"❌ SMTP Authentication failed")
-        return jsonify({
-            "success": False,
-            "error": "SMTP Authentication failed. Please check email credentials."
-        }), 500
     except Exception as e:
         print(f"❌ Failed to send test email: {e}")
         return jsonify({
@@ -801,12 +830,13 @@ def test_email():
 # SMTP status check endpoint (no auth required for debugging)
 @app.route('/api/smtp-status', methods=['GET'])
 def smtp_status():
-    """Check if SMTP is configured (for debugging)"""
+    """Check if email service is configured (for debugging)"""
     return jsonify({
-        "smtp_configured": bool(SMTP_EMAIL and SMTP_PASSWORD),
-        "smtp_server": SMTP_SERVER if SMTP_EMAIL else None,
-        "smtp_port": SMTP_PORT if SMTP_EMAIL else None,
-        "smtp_email": SMTP_EMAIL if SMTP_EMAIL else "Not configured"
+        "email_configured": USE_SENDGRID or USE_SMTP,
+        "service": "SendGrid" if USE_SENDGRID else ("SMTP" if USE_SMTP else "None"),
+        "smtp_server": SMTP_SERVER if USE_SMTP else None,
+        "smtp_port": SMTP_PORT if USE_SMTP else None,
+        "from_email": SMTP_EMAIL if (USE_SENDGRID or USE_SMTP) else "Not configured"
     })
 
 # Custom JSON serialization function
@@ -1420,9 +1450,9 @@ def create_invoice():
         
         # Send email in background thread if requested
         if send_email and customer_email:
-            if not SMTP_EMAIL or not SMTP_PASSWORD:
-                print("⚠️ Email requested but SMTP credentials not configured")
-                response_data["message"] = "Invoice created successfully. Email not sent - SMTP not configured."
+            if not (USE_SENDGRID or USE_SMTP):
+                print("⚠️ Email requested but no email service configured")
+                response_data["message"] = "Invoice created successfully. Email not sent - no email service configured."
                 response_data["email_sent"] = False
             else:
                 # Get shop details for email

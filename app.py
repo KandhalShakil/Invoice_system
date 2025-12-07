@@ -3,6 +3,7 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from datetime import datetime, date, timedelta
+# Invoice Management System - Backend API
 import json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas

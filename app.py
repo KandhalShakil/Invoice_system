@@ -778,6 +778,17 @@ def test_email():
             "error": f"Failed to send test email: {str(e)}"
         }), 500
 
+# SMTP status check endpoint (no auth required for debugging)
+@app.route('/api/smtp-status', methods=['GET'])
+def smtp_status():
+    """Check if SMTP is configured (for debugging)"""
+    return jsonify({
+        "smtp_configured": bool(SMTP_EMAIL and SMTP_PASSWORD),
+        "smtp_server": SMTP_SERVER if SMTP_EMAIL else None,
+        "smtp_port": SMTP_PORT if SMTP_EMAIL else None,
+        "smtp_email": SMTP_EMAIL if SMTP_EMAIL else "Not configured"
+    })
+
 # Custom JSON serialization function
 def serialize_doc(doc):
     """Convert MongoDB document to JSON serializable format"""

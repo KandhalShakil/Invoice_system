@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 import qrcode
 from io import BytesIO
 import base64
+import threading
 
 # Load environment variables from .env file
 load_dotenv()
@@ -156,6 +157,122 @@ def health_check():
 
 if not SMTP_EMAIL or not SMTP_PASSWORD:
     print("WARNING: SMTP credentials not found in .env file. Email functionality will not work.")
+
+# Background email sender function
+def send_invoice_email_async(customer_email, invoice_id, invoice_doc, shop_name, shop_address, shop_phone, items, subtotal, tax, discount, total, tax_rate, discount_rate, customer_name, customer_address, customer_number):
+    """Send invoice email in background thread"""
+    try:
+        # Prepare email
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'📄 Invoice #{invoice_id} from {shop_name} | Invoice Management System'
+        msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
+        msg['To'] = customer_email
+        
+        # Create items HTML
+        items_html = ""
+        for item in items:
+            items_html += f"""
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">{item['name']}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item['quantity']} {item.get('unit', 'pcs')}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['price']:.2f}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['quantity'] * item['price']:.2f}</td>
+            </tr>
+            """
+        
+        html = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+            <div style="max-width: 700px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              
+              <!-- App Branding -->
+              <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #ff9933 0%, #138808 100%); border-radius: 8px;">
+                <h3 style="color: white; margin: 0; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">📊 Invoice Management System</h3>
+                <p style="color: #f0f0f0; margin: 5px 0 0 0; font-size: 12px;">Professional Invoice Generation & Management</p>
+              </div>
+              
+              <!-- Shop Details -->
+              <div style="border-bottom: 3px solid #138808; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="color: #138808; margin: 0; font-size: 28px;">🏪 {shop_name}</h1>
+                <p style="margin: 5px 0; color: #666; font-size: 14px;">📍 {shop_address}</p>
+                <p style="margin: 5px 0; color: #666; font-size: 14px;">📞 {shop_phone}</p>
+              </div>
+              
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h2 style="color: #138808; margin: 0 0 15px 0; font-size: 20px;">Invoice #{invoice_id}</h2>
+                <p style="margin: 5px 0; color: #333;"><strong>Date:</strong> {invoice_doc['order_date'].strftime('%d %B %Y')}</p>
+                <p style="margin: 5px 0; color: #333;"><strong>Customer:</strong> {customer_name}</p>
+                <p style="margin: 5px 0; color: #333;"><strong>Address:</strong> {customer_address}</p>
+                <p style="margin: 5px 0; color: #333;"><strong>Contact:</strong> {customer_number}</p>
+              </div>
+              
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                <thead>
+                  <tr style="background-color: #138808; color: white;">
+                    <th style="padding: 12px; text-align: left;">Item</th>
+                    <th style="padding: 12px; text-align: center;">Quantity</th>
+                    <th style="padding: 12px; text-align: right;">Price</th>
+                    <th style="padding: 12px; text-align: right;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items_html}
+                </tbody>
+              </table>
+              
+              <div style="border-top: 2px solid #138808; padding-top: 20px;">
+                <table style="width: 100%; max-width: 300px; margin-left: auto;">
+                  <tr>
+                    <td style="padding: 8px; color: #666;">Subtotal:</td>
+                    <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {subtotal:.2f}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px; color: #666;">Tax ({tax_rate}%):</td>
+                    <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {tax:.2f}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px; color: #666;">Discount ({discount_rate}%):</td>
+                    <td style="padding: 8px; text-align: right; font-weight: bold; color: #d9534f;">- Rs {discount:.2f}</td>
+                  </tr>
+                  <tr style="border-top: 2px solid #138808;">
+                    <td style="padding: 12px; font-size: 18px; font-weight: bold; color: #138808;">Total Amount:</td>
+                    <td style="padding: 12px; text-align: right; font-size: 20px; font-weight: bold; color: #138808;">Rs {total:.2f}</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
+                <p style="margin: 5px 0;">🙏 Thank you for your business!</p>
+                <p style="margin: 10px 0;">This invoice was generated by <strong style="color: #138808;">Invoice Management System</strong></p>
+                <p style="margin: 10px 0;">This is an automated email from <strong>{shop_name}</strong>. Please do not reply.</p>
+                <p style="margin: 10px 0;">📧 For any queries, contact us at {shop_phone}</p>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                  <p style="margin: 5px 0; color: #bbb; font-size: 11px;">Powered by Invoice Management System | Professional Business Solutions</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+        
+        part = MIMEText(html, 'html')
+        msg.attach(part)
+        
+        # Send email
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.send_message(msg)
+        
+        print(f"✅ Invoice email sent successfully to {customer_email}")
+        print(f"   Shop: {shop_name}")
+        print(f"   Invoice ID: {invoice_id}")
+        
+    except Exception as email_error:
+        print(f"❌ Failed to send invoice email to {customer_email}")
+        print(f"   Error: {email_error}")
+        print(f"   Shop: {shop_name}")
+        print(f"   Invoice ID: {invoice_id}")
 
 # Authentication endpoints
 @app.route('/api/auth/send-signup-otp', methods=['POST'])
@@ -1179,138 +1296,38 @@ def create_invoice():
         
         invoice_doc["_id"] = result.inserted_id
         
-        # Send email if customer email provided and send_email is True
-        email_sent = False
-        if customer_email and send_email and SMTP_EMAIL and SMTP_PASSWORD:
-            try:
-                # Get session token to fetch shop details
-                session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
-                shop_info = auth_collection.find_one({"session_token": session_token})
-                
-                shop_name = shop_info.get('shop_name', 'Shop') if shop_info else 'Shop'
-                shop_address = shop_info.get('shop_address', '') if shop_info else ''
-                shop_phone = shop_info.get('shop_phone', '') if shop_info else ''
-                
-                # Prepare email
-                msg = MIMEMultipart('alternative')
-                msg['Subject'] = f'📄 Invoice #{invoice_id} from {shop_name} | Invoice Management System'
-                msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
-                msg['To'] = customer_email
-                
-                # Create items HTML
-                items_html = ""
-                for item in items:
-                    items_html += f"""
-                    <tr>
-                        <td style="padding: 10px; border-bottom: 1px solid #eee;">{item['name']}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item['quantity']} {item.get('unit', 'pcs')}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['price']:.2f}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['quantity'] * item['price']:.2f}</td>
-                    </tr>
-                    """
-                
-                html = f"""
-                <html>
-                  <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-                    <div style="max-width: 700px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                      
-                      <!-- App Branding -->
-                      <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #ff9933 0%, #138808 100%); border-radius: 8px;">
-                        <h3 style="color: white; margin: 0; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">📊 Invoice Management System</h3>
-                        <p style="color: #f0f0f0; margin: 5px 0 0 0; font-size: 12px;">Professional Invoice Generation & Management</p>
-                      </div>
-                      
-                      <!-- Shop Details -->
-                      <div style="border-bottom: 3px solid #138808; padding-bottom: 20px; margin-bottom: 30px;">
-                        <h1 style="color: #138808; margin: 0; font-size: 28px;">🏪 {shop_name}</h1>
-                        <p style="margin: 5px 0; color: #666; font-size: 14px;">📍 {shop_address}</p>
-                        <p style="margin: 5px 0; color: #666; font-size: 14px;">📞 {shop_phone}</p>
-                      </div>
-                      
-                      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                        <h2 style="color: #138808; margin: 0 0 15px 0; font-size: 20px;">Invoice #{invoice_id}</h2>
-                        <p style="margin: 5px 0; color: #333;"><strong>Date:</strong> {invoice_doc['order_date'].strftime('%d %B %Y')}</p>
-                        <p style="margin: 5px 0; color: #333;"><strong>Customer:</strong> {customer_name}</p>
-                        <p style="margin: 5px 0; color: #333;"><strong>Address:</strong> {customer_address}</p>
-                        <p style="margin: 5px 0; color: #333;"><strong>Contact:</strong> {customer_number}</p>
-                      </div>
-                      
-                      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                        <thead>
-                          <tr style="background-color: #138808; color: white;">
-                            <th style="padding: 12px; text-align: left;">Item</th>
-                            <th style="padding: 12px; text-align: center;">Quantity</th>
-                            <th style="padding: 12px; text-align: right;">Price</th>
-                            <th style="padding: 12px; text-align: right;">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {items_html}
-                        </tbody>
-                      </table>
-                      
-                      <div style="border-top: 2px solid #138808; padding-top: 20px;">
-                        <table style="width: 100%; max-width: 300px; margin-left: auto;">
-                          <tr>
-                            <td style="padding: 8px; color: #666;">Subtotal:</td>
-                            <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {subtotal:.2f}</td>
-                          </tr>
-                          <tr>
-                            <td style="padding: 8px; color: #666;">Tax ({tax_rate}%):</td>
-                            <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {tax:.2f}</td>
-                          </tr>
-                          <tr>
-                            <td style="padding: 8px; color: #666;">Discount ({discount_rate}%):</td>
-                            <td style="padding: 8px; text-align: right; font-weight: bold; color: #d9534f;">- Rs {discount:.2f}</td>
-                          </tr>
-                          <tr style="border-top: 2px solid #138808;">
-                            <td style="padding: 12px; font-size: 18px; font-weight: bold; color: #138808;">Total Amount:</td>
-                            <td style="padding: 12px; text-align: right; font-size: 20px; font-weight: bold; color: #138808;">Rs {total:.2f}</td>
-                          </tr>
-                        </table>
-                      </div>
-                      
-                      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
-                        <p style="margin: 5px 0;">🙏 Thank you for your business!</p>
-                        <p style="margin: 10px 0;">This invoice was generated by <strong style="color: #138808;">Invoice Management System</strong></p>
-                        <p style="margin: 10px 0;">This is an automated email from <strong>{shop_name}</strong>. Please do not reply.</p>
-                        <p style="margin: 10px 0;">📧 For any queries, contact us at {shop_phone}</p>
-                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                          <p style="margin: 5px 0; color: #bbb; font-size: 11px;">Powered by Invoice Management System | Professional Business Solutions</p>
-                        </div>
-                      </div>
-                    </div>
-                  </body>
-                </html>
-                """
-                
-                part = MIMEText(html, 'html')
-                msg.attach(part)
-                
-                # Send email
-                with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                    server.starttls()
-                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                    server.send_message(msg)
-                
-                email_sent = True
-                print(f"✅ Invoice email sent successfully to {customer_email}")
-                print(f"   Shop: {shop_name}")
-                print(f"   Invoice ID: {invoice_id}")
-                
-            except Exception as email_error:
-                print(f"❌ Failed to send invoice email to {customer_email}")
-                print(f"   Error: {email_error}")
-                print(f"   Shop: {shop_name}")
-                print(f"   Invoice ID: {invoice_id}")
-                # Don't fail the whole request if email fails
-        
-        return jsonify({
+        # Prepare response BEFORE sending email (send email in background)
+        response_data = {
             "success": True,
-            "message": "Invoice created successfully" + (" and email sent!" if email_sent else ""),
+            "message": "Invoice created successfully",
             "invoice": serialize_doc(invoice_doc),
-            "email_sent": email_sent
-        })
+            "email_sent": False  # Will be sent in background
+        }
+        
+        # Send email in background thread if requested
+        if customer_email and send_email and SMTP_EMAIL and SMTP_PASSWORD:
+            # Get shop details for email
+            session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
+            shop_info = auth_collection.find_one({"session_token": session_token})
+            
+            shop_name = shop_info.get('shop_name', 'Shop') if shop_info else 'Shop'
+            shop_address = shop_info.get('shop_address', '') if shop_info else ''
+            shop_phone = shop_info.get('shop_phone', '') if shop_info else ''
+            
+            # Start background email thread
+            email_thread = threading.Thread(
+                target=send_invoice_email_async,
+                args=(customer_email, invoice_id, invoice_doc, shop_name, shop_address, shop_phone, 
+                      items, subtotal, tax, discount, total, tax_rate, discount_rate,
+                      customer_name, customer_address, customer_number)
+            )
+            email_thread.daemon = True
+            email_thread.start()
+            
+            response_data["message"] = "Invoice created successfully. Email will be sent shortly."
+            response_data["email_sent"] = True  # Email is being sent
+        
+        return jsonify(response_data)
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400

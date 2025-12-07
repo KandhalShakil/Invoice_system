@@ -160,86 +160,6 @@ if not SMTP_EMAIL or not SMTP_PASSWORD:
 else:
     print(f"✅ SMTP configured: {SMTP_EMAIL} via {SMTP_SERVER}:{SMTP_PORT}")
 
-# Test email endpoint
-@app.route('/api/test-email', methods=['POST'])
-@require_auth
-def test_email():
-    """Test email configuration by sending a test email"""
-    try:
-        data = request.json
-        test_email = data.get('email', '')
-        
-        if not test_email:
-            return jsonify({"success": False, "error": "Email address is required"}), 400
-        
-        if not SMTP_EMAIL or not SMTP_PASSWORD:
-            return jsonify({
-                "success": False, 
-                "error": "SMTP credentials not configured on server"
-            }), 500
-        
-        # Get shop details
-        session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
-        shop_info = auth_collection.find_one({"session_token": session_token})
-        shop_name = shop_info.get('shop_name', 'Invoice System') if shop_info else 'Invoice System'
-        
-        # Prepare test email
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f'✅ Test Email from {shop_name} - Invoice Management System'
-        msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
-        msg['To'] = test_email
-        
-        html = f"""
-        <html>
-          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <div style="text-align: center; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #ff9933 0%, #138808 100%); border-radius: 8px;">
-                <h1 style="color: white; margin: 0; font-size: 24px;">✅ Email Test Successful!</h1>
-              </div>
-              <p style="font-size: 16px; color: #333; margin: 20px 0;">Hello!</p>
-              <p style="font-size: 16px; color: #333;">This is a test email from <strong>{shop_name}</strong>.</p>
-              <p style="font-size: 16px; color: #333;">Your email configuration is working correctly! 🎉</p>
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                <p style="margin: 5px 0; color: #666;"><strong>SMTP Server:</strong> {SMTP_SERVER}</p>
-                <p style="margin: 5px 0; color: #666;"><strong>From:</strong> {SMTP_EMAIL}</p>
-                <p style="margin: 5px 0; color: #666;"><strong>Test Date:</strong> {datetime.now().strftime('%d %B %Y, %I:%M %p')}</p>
-              </div>
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
-                <p>Powered by Invoice Management System</p>
-              </div>
-            </div>
-          </body>
-        </html>
-        """
-        
-        part = MIMEText(html, 'html')
-        msg.attach(part)
-        
-        # Send email
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.send_message(msg)
-        
-        print(f"✅ Test email sent successfully to {test_email}")
-        return jsonify({
-            "success": True,
-            "message": f"Test email sent successfully to {test_email}"
-        })
-        
-    except smtplib.SMTPAuthenticationError:
-        print(f"❌ SMTP Authentication failed")
-        return jsonify({
-            "success": False,
-            "error": "SMTP Authentication failed. Please check email credentials."
-        }), 500
-    except Exception as e:
-        print(f"❌ Failed to send test email: {e}")
-        return jsonify({
-            "success": False,
-            "error": f"Failed to send test email: {str(e)}"
-        }), 500
-
 # Background email sender function
 def send_invoice_email_async(customer_email, invoice_id, invoice_doc, shop_name, shop_address, shop_phone, items, subtotal, tax, discount, total, tax_rate, discount_rate, customer_name, customer_address, customer_number):
     """Send invoice email in background thread"""
@@ -776,6 +696,86 @@ def require_auth(f):
         return f(*args, **kwargs)
     
     return decorated_function
+
+# Test email endpoint (for debugging SMTP configuration)
+@app.route('/api/test-email', methods=['POST'])
+@require_auth
+def test_email():
+    """Test email configuration by sending a test email"""
+    try:
+        data = request.json
+        test_email_addr = data.get('email', '')
+        
+        if not test_email_addr:
+            return jsonify({"success": False, "error": "Email address is required"}), 400
+        
+        if not SMTP_EMAIL or not SMTP_PASSWORD:
+            return jsonify({
+                "success": False, 
+                "error": "SMTP credentials not configured on server"
+            }), 500
+        
+        # Get shop details
+        session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        shop_info = auth_collection.find_one({"session_token": session_token})
+        shop_name = shop_info.get('shop_name', 'Invoice System') if shop_info else 'Invoice System'
+        
+        # Prepare test email
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'✅ Test Email from {shop_name} - Invoice Management System'
+        msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
+        msg['To'] = test_email_addr
+        
+        html = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #ff9933 0%, #138808 100%); border-radius: 8px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">✅ Email Test Successful!</h1>
+              </div>
+              <p style="font-size: 16px; color: #333; margin: 20px 0;">Hello!</p>
+              <p style="font-size: 16px; color: #333;">This is a test email from <strong>{shop_name}</strong>.</p>
+              <p style="font-size: 16px; color: #333;">Your email configuration is working correctly! 🎉</p>
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                <p style="margin: 5px 0; color: #666;"><strong>SMTP Server:</strong> {SMTP_SERVER}</p>
+                <p style="margin: 5px 0; color: #666;"><strong>From:</strong> {SMTP_EMAIL}</p>
+                <p style="margin: 5px 0; color: #666;"><strong>Test Date:</strong> {datetime.now().strftime('%d %B %Y, %I:%M %p')}</p>
+              </div>
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
+                <p>Powered by Invoice Management System</p>
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+        
+        part = MIMEText(html, 'html')
+        msg.attach(part)
+        
+        # Send email
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.send_message(msg)
+        
+        print(f"✅ Test email sent successfully to {test_email_addr}")
+        return jsonify({
+            "success": True,
+            "message": f"Test email sent successfully to {test_email_addr}"
+        })
+        
+    except smtplib.SMTPAuthenticationError:
+        print(f"❌ SMTP Authentication failed")
+        return jsonify({
+            "success": False,
+            "error": "SMTP Authentication failed. Please check email credentials."
+        }), 500
+    except Exception as e:
+        print(f"❌ Failed to send test email: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Failed to send test email: {str(e)}"
+        }), 500
 
 # Custom JSON serialization function
 def serialize_doc(doc):

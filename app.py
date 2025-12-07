@@ -53,12 +53,24 @@ CORS(app,
 # Additional CORS handler to ensure headers are always present
 @app.after_request
 def after_request(response):
-    origin = request.headers.get('Origin')
-    if origin:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
+    origin = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Origin'] = origin if origin != '*' else 'https://kandhal-invoice-system.vercel.app'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Max-Age'] = '3600'
+    return response
+
+# Error handler to ensure CORS on errors too
+@app.errorhandler(Exception)
+def handle_error(error):
+    response = jsonify({'error': str(error)})
+    response.status_code = 500
+    origin = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Origin'] = origin if origin != '*' else 'https://kandhal-invoice-system.vercel.app'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
 # MongoDB connection from environment variables
@@ -74,6 +86,20 @@ items_collection = db.items
 invoices_collection = db.invoices
 auth_collection = db.auth_sessions
 customers_collection = db.customers
+
+# Global OPTIONS handler for all routes
+@app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+@app.route('/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    response = jsonify({'status': 'ok'})
+    origin = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Origin'] = origin if origin != '*' else 'https://kandhal-invoice-system.vercel.app'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Max-Age'] = '3600'
+    return response, 200
+
 # Create indexes for better performance
 items_collection.create_index("item_name")
 invoices_collection.create_index("invoice_id")
@@ -105,6 +131,28 @@ SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
 SMTP_EMAIL = os.getenv('SMTP_EMAIL')
 SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
+
+# Health check endpoint
+@app.route('/health', methods=['GET', 'OPTIONS'])
+@app.route('/api/health', methods=['GET', 'OPTIONS'])
+def health_check():
+    """Health check endpoint to wake up the server"""
+    try:
+        # Check MongoDB connection
+        db.command('ping')
+        return jsonify({
+            'status': 'ok',
+            'message': 'Server is running',
+            'database': 'connected',
+            'timestamp': datetime.now().isoformat()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'database': 'disconnected',
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 if not SMTP_EMAIL or not SMTP_PASSWORD:
     print("WARNING: SMTP credentials not found in .env file. Email functionality will not work.")

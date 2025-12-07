@@ -1052,9 +1052,14 @@
         <div id="dashboard" class="tab-content active">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #138808;" >📊 Business Overview</h2>
-                <button onclick="exportAllData()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
-                    📥 Export All Data
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="printAllQRCodes()" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 8px;">
+                        🖨️ Print All QR Codes
+                    </button>
+                    <button onclick="exportAllData()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                        📥 Export All Data
+                    </button>
+                </div>
             </div>
             
             <div class="stats-grid">
@@ -2833,6 +2838,256 @@
         let qrScannerStream = null;
 
         // QR Code Functions
+        async function printAllQRCodes() {
+            try {
+                showNotification('Generating QR Codes...', 'Please wait while we generate all QR codes', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/items`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                
+                if (handleAuthError(data)) return;
+                
+                if (!data.success || data.items.length === 0) {
+                    showPopup('No Items Found ❌', 'There are no items to generate QR codes. Please add items first.', 'alert');
+                    return;
+                }
+                
+                const items = data.items;
+                const qrCodesData = [];
+                
+                // Fetch QR codes for all items
+                for (const item of items) {
+                    try {
+                        const qrResponse = await fetch(`${API_BASE}/api/items/${item._id}/qrcode`, {
+                            headers: getAuthHeaders()
+                        });
+                        const qrData = await qrResponse.json();
+                        
+                        if (qrData.success) {
+                            qrCodesData.push({
+                                name: item.item_name,
+                                price: item.item_price,
+                                unit: item.unit || 'pcs',
+                                qrCode: qrData.qr_code
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching QR for ${item.item_name}:`, error);
+                    }
+                }
+                
+                if (qrCodesData.length === 0) {
+                    showPopup('Error ❌', 'Failed to generate QR codes. Please try again.', 'alert');
+                    return;
+                }
+                
+                // Generate print page with 8 rows x 5 columns = 40 QR codes
+                generateQRPrintPage(qrCodesData);
+                
+            } catch (error) {
+                console.error('Error printing QR codes:', error);
+                showPopup('Error ❌', 'Failed to print QR codes. Please try again.', 'alert');
+            }
+        }
+        
+        function generateQRPrintPage(qrCodesData) {
+            const printWindow = window.open('', '_blank');
+            
+            // Create HTML for print page with exactly 40 QR code slots (8 rows x 5 columns)
+            let qrCardsHTML = '';
+            const totalSlots = 40; // 8 rows x 5 columns
+            
+            for (let i = 0; i < totalSlots; i++) {
+                if (i < qrCodesData.length) {
+                    const item = qrCodesData[i];
+                    qrCardsHTML += `
+                        <div class="qr-card">
+                            <img src="data:image/png;base64,${item.qrCode}" alt="QR Code">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">Rs ${item.price.toFixed(2)} / ${item.unit}</div>
+                        </div>
+                    `;
+                } else {
+                    // Empty slot for remaining spaces
+                    qrCardsHTML += `
+                        <div class="qr-card empty">
+                            <div class="empty-text">-</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>QR Codes - Invoice System</title>
+                    <style>
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+                        
+                        @page {
+                            size: A4 landscape;
+                            margin: 10mm;
+                        }
+                        
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 10px;
+                            background: white;
+                        }
+                        
+                        .header {
+                            text-align: center;
+                            margin-bottom: 15px;
+                            padding-bottom: 10px;
+                            border-bottom: 3px solid #138808;
+                        }
+                        
+                        .header h1 {
+                            color: #138808;
+                            font-size: 24px;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .header p {
+                            color: #666;
+                            font-size: 14px;
+                        }
+                        
+                        .qr-grid {
+                            display: grid;
+                            grid-template-columns: repeat(5, 1fr);
+                            grid-template-rows: repeat(8, 1fr);
+                            gap: 8px;
+                            width: 100%;
+                            height: calc(100vh - 100px);
+                        }
+                        
+                        .qr-card {
+                            border: 2px solid #138808;
+                            border-radius: 8px;
+                            padding: 8px;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            background: white;
+                            page-break-inside: avoid;
+                        }
+                        
+                        .qr-card.empty {
+                            border: 2px dashed #ddd;
+                            background: #f9f9f9;
+                        }
+                        
+                        .qr-card img {
+                            width: 100%;
+                            max-width: 120px;
+                            height: auto;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .item-name {
+                            font-weight: bold;
+                            font-size: 11px;
+                            text-align: center;
+                            color: #138808;
+                            margin-bottom: 3px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            width: 100%;
+                        }
+                        
+                        .item-price {
+                            font-size: 10px;
+                            color: #666;
+                            text-align: center;
+                        }
+                        
+                        .empty-text {
+                            color: #ccc;
+                            font-size: 24px;
+                            font-weight: bold;
+                        }
+                        
+                        .footer {
+                            text-align: center;
+                            margin-top: 15px;
+                            padding-top: 10px;
+                            border-top: 2px solid #138808;
+                            color: #666;
+                            font-size: 11px;
+                        }
+                        
+                        @media print {
+                            body {
+                                padding: 5px;
+                            }
+                            
+                            .header h1 {
+                                font-size: 20px;
+                            }
+                            
+                            .qr-grid {
+                                gap: 5px;
+                            }
+                            
+                            .qr-card {
+                                padding: 5px;
+                            }
+                            
+                            .no-print {
+                                display: none;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🏪 Item QR Codes - Invoice Management System</h1>
+                        <p>Total Items: ${qrCodesData.length} | Grid: 8 Rows × 5 Columns (40 slots) | Date: ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div class="qr-grid">
+                        ${qrCardsHTML}
+                    </div>
+                    
+                    <div class="footer">
+                        <p>📱 Scan any QR code to quickly add item to invoice | Powered by Invoice Management System</p>
+                    </div>
+                    
+                    <div class="no-print" style="text-align: center; margin-top: 20px;">
+                        <button onclick="window.print()" style="padding: 12px 30px; background: #138808; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">
+                            🖨️ Print
+                        </button>
+                        <button onclick="window.close()" style="padding: 12px 30px; background: #dc3545; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                            ✖ Close
+                        </button>
+                    </div>
+                    
+                    <script>
+                        // Auto print after page loads
+                        window.onload = function() {
+                            setTimeout(() => {
+                                window.print();
+                            }, 500);
+                        };
+                    </script>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            showNotification('QR Codes Ready! 🎉', `Generated ${qrCodesData.length} QR codes in 8x5 grid`, 'success');
+        }
+        
         async function showItemQR(itemId) {
             try {
                 const response = await fetch(`${API_BASE}/api/items/${itemId}/qrcode`, {

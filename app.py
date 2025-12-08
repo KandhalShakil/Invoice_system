@@ -149,11 +149,29 @@ def health_check():
             'timestamp': datetime.now().isoformat()
         }), 500
 
-# Email sending will be handled by frontend using EmailJS
-# Backend just returns invoice data for frontend to send email
-print("📧 Email sending delegated to frontend (EmailJS)")
+# EmailJS Configuration - Credentials stored securely in environment variables
+EMAILJS_SERVICE_ID = os.getenv('EMAILJS_SERVICE_ID', '')
+EMAILJS_TEMPLATE_ID = os.getenv('EMAILJS_TEMPLATE_ID', '')
+EMAILJS_PUBLIC_KEY = os.getenv('EMAILJS_PUBLIC_KEY', '')
 
-# Email functionality removed
+if EMAILJS_SERVICE_ID and EMAILJS_TEMPLATE_ID and EMAILJS_PUBLIC_KEY:
+    print(f"✅ EmailJS configured: {EMAILJS_SERVICE_ID}")
+else:
+    print("⚠️ WARNING: EmailJS not configured. Set EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, and EMAILJS_PUBLIC_KEY in .env")
+
+# Email sending will be handled by frontend using EmailJS
+# Backend provides EmailJS configuration securely
+
+# EmailJS Configuration Endpoint
+@app.route('/api/emailjs-config', methods=['GET', 'OPTIONS'])
+def get_emailjs_config():
+    """Provide EmailJS configuration to frontend - No authentication required"""
+    return jsonify({
+        'service_id': EMAILJS_SERVICE_ID,
+        'template_id': EMAILJS_TEMPLATE_ID,
+        'public_key': EMAILJS_PUBLIC_KEY,
+        'configured': bool(EMAILJS_SERVICE_ID and EMAILJS_TEMPLATE_ID and EMAILJS_PUBLIC_KEY)
+    })
 
 # Authentication endpoints
 @app.route('/api/auth/send-signup-otp', methods=['POST'])

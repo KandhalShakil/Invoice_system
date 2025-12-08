@@ -2694,6 +2694,40 @@
         let invoiceItems = [];
         let popupCallback = null;
         
+        // EmailJS Configuration - Fetched from backend
+        let EMAILJS_CONFIG = {
+            service_id: '',
+            template_id: '',
+            public_key: '',
+            configured: false
+        };
+        
+        // Fetch EmailJS configuration from backend
+        async function loadEmailJSConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/api/emailjs-config`);
+                if (response.ok) {
+                    EMAILJS_CONFIG = await response.json();
+                    if (EMAILJS_CONFIG.configured) {
+                        console.log('✅ EmailJS configuration loaded from backend');
+                        // Initialize EmailJS with public key
+                        if (typeof emailjs !== 'undefined' && EMAILJS_CONFIG.public_key) {
+                            emailjs.init(EMAILJS_CONFIG.public_key);
+                        }
+                    } else {
+                        console.warn('⚠️ EmailJS not configured on backend');
+                    }
+                } else {
+                    console.error('Failed to fetch EmailJS config');
+                }
+            } catch (error) {
+                console.error('Error loading EmailJS config:', error);
+            }
+        }
+        
+        // Load EmailJS config on page load
+        loadEmailJSConfig();
+        
         // Helper function to get auth headers
         function getAuthHeaders() {
             return {
@@ -4165,15 +4199,16 @@
                             
                             console.log('Sending email to:', data.email_data.customer_email);
                             
-                            // Send email via EmailJS REST API directly with recipient
-                            const serviceId = 'service_emks25r';
-                            const templateId = 'template_x9d25fm';
-                            const userId = 'HiT1qgF3NG4BIwyQY';
+                            // Check if EmailJS is configured
+                            if (!EMAILJS_CONFIG.configured) {
+                                throw new Error('EmailJS not configured on backend');
+                            }
                             
+                            // Send email via EmailJS REST API using backend configuration
                             const emailData = {
-                                service_id: serviceId,
-                                template_id: templateId,
-                                user_id: userId,
+                                service_id: EMAILJS_CONFIG.service_id,
+                                template_id: EMAILJS_CONFIG.template_id,
+                                user_id: EMAILJS_CONFIG.public_key,
                                 template_params: {
                                     to_email: data.email_data.customer_email,
                                     reply_to: data.email_data.customer_email,
@@ -4192,7 +4227,7 @@
                                     amount: data.email_data.total.toFixed(2),
                                     invoice_id: data.email_data.invoice_id
                                 },
-                                accessToken: userId
+                                accessToken: EMAILJS_CONFIG.public_key
                             };
                             
                             console.log('Sending email with data...');
@@ -4216,11 +4251,12 @@
                         } catch (emailError) {
                             console.error('Email sending failed:', emailError);
                             console.error('Error details:', emailError.message || emailError.text);
-                            showNotification('Email Failed ⚠️', 
-                                'Invoice created successfully, but email could not be sent. ' + 
-                                'Go to EmailJS Dashboard → Templates → Edit template_x9d25fm → ' +
-                                'Set "To Email" field to: {{to_email}}', 
-                                'alert');
+                            const errorMsg = emailError.message === 'EmailJS not configured on backend' 
+                                ? 'Email service not configured. Contact administrator.'
+                                : 'Invoice created successfully, but email could not be sent. ' + 
+                                  'Go to EmailJS Dashboard → Templates → Edit your template → ' +
+                                  'Set "To Email" field to: {{to_email}}';
+                            showNotification('Email Failed ⚠️', errorMsg, 'alert');
                         }
                     }
                     
@@ -4760,13 +4796,8 @@
         });
     </script>
     
-    <!-- EmailJS SDK -->
+    <!-- EmailJS SDK - Configuration loaded from backend -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script type="text/javascript">
-        (function() {
-            emailjs.init('HiT1qgF3NG4BIwyQY');
-        })();
-    </script>
     
     <!-- Footer -->
     <div style="text-align: center; padding: 30px 20px; margin-top: 40px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">

@@ -54,13 +54,21 @@ A professional invoice management system with inventory tracking, customer manag
    
    Create a `.env` file in the root directory:
    ```env
+   # MongoDB Configuration
    MONGODB_URI=your_mongodb_connection_string
    MONGODB_DATABASE=grocery_shop
+   
+   # Flask Configuration
    FLASK_SECRET_KEY=your_secret_key_here
    FLASK_ENV=development
    FLASK_DEBUG=True
    FLASK_HOST=0.0.0.0
    FLASK_PORT=5000
+   
+   # EmailJS Configuration (Get from https://www.emailjs.com/)
+   EMAILJS_SERVICE_ID=your_service_id
+   EMAILJS_TEMPLATE_ID=your_template_id
+   EMAILJS_PUBLIC_KEY=your_public_key
    ```
 
 5. **Run the application**
@@ -80,8 +88,11 @@ A professional invoice management system with inventory tracking, customer manag
 3. Click "New +" → "Web Service"
 4. Connect your GitHub repository
 5. Render will automatically detect `render.yaml` and configure deployment
-6. Add environment variable:
+6. Add environment variables in Render Dashboard:
    - `MONGODB_URI`: Your MongoDB connection string
+   - `EMAILJS_SERVICE_ID`: Your EmailJS Service ID
+   - `EMAILJS_TEMPLATE_ID`: Your EmailJS Template ID
+   - `EMAILJS_PUBLIC_KEY`: Your EmailJS Public Key
 7. Click "Create Web Service"
 8. Your backend will be live at: `https://YOUR-APP-NAME.onrender.com`
 
@@ -113,20 +124,43 @@ Also update the `Access-Control-Allow-Origin` in the `@app.after_request` functi
 
 ## 📧 Email Configuration (EmailJS)
 
-1. Create account at [EmailJS](https://www.emailjs.com/)
-2. Create email service (Gmail/Outlook/etc.)
-3. Create email template with these variables:
-   - `{{to_email}}` - Recipient email (⚠️ MUST be set in template's "To Email" field)
-   - `{{shop_name}}` - Shop name
-   - `{{invoice_id}}` - Invoice number
-   - `{{items_list}}` - HTML table of items
-   - `{{total}}` - Total amount
-   - (See full list in `static/index.html`)
-4. Get your credentials:
-   - Service ID
-   - Template ID
-   - Public Key
-5. Update in `static/index.html` (lines 4152-4154)
+1. **Create EmailJS Account**
+   - Go to [EmailJS](https://www.emailjs.com/) and sign up
+   
+2. **Create Email Service**
+   - Connect your email provider (Gmail/Outlook/etc.)
+   - Note your Service ID
+   
+3. **Create Email Template**
+   - Create new template with these variables:
+     - `{{to_email}}` - Recipient email (⚠️ MUST be set in template's "To Email" field)
+     - `{{shop_name}}` - Shop name
+     - `{{shop_address}}` - Shop address
+     - `{{shop_number}}` - Shop phone
+     - `{{invoice_id}}` - Invoice number
+     - `{{date}}` - Invoice date
+     - `{{name}}` - Customer name
+     - `{{address}}` - Customer address
+     - `{{customer_number}}` - Customer phone
+     - `{{items_list}}` - HTML table of items
+     - `{{subtotal}}` - Subtotal amount
+     - `{{tax}}` - Tax amount
+     - `{{discount}}` - Discount amount
+     - `{{amount}}` - Total amount
+   - Note your Template ID
+   
+4. **Get API Credentials**
+   - Go to Account → API Keys
+   - Copy your Public Key
+   
+5. **Configure Environment Variables**
+   - Add to `.env` file (local) or Render Dashboard (production):
+     ```env
+     EMAILJS_SERVICE_ID=your_service_id_here
+     EMAILJS_TEMPLATE_ID=your_template_id_here
+     EMAILJS_PUBLIC_KEY=your_public_key_here
+     ```
+   - The frontend will automatically fetch these from the backend API
 
 ### Important EmailJS Setup
 
@@ -309,6 +343,11 @@ origins=[
 | FLASK_DEBUG | No | False | Debug mode |
 | FLASK_HOST | No | 0.0.0.0 | Server host |
 | FLASK_PORT | No | 5000 | Server port |
+| EMAILJS_SERVICE_ID | Yes* | - | EmailJS Service ID for email delivery |
+| EMAILJS_TEMPLATE_ID | Yes* | - | EmailJS Template ID for email format |
+| EMAILJS_PUBLIC_KEY | Yes* | - | EmailJS Public Key for API access |
+
+*Required for email functionality
 
 ## 🤝 Contributing
 

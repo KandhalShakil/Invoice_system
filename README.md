@@ -134,19 +134,16 @@ Also update the `Access-Control-Allow-Origin` in the `@app.after_request` functi
 3. **Create Email Template**
    - Create new template with these variables:
      - `{{to_email}}` - Recipient email (⚠️ MUST be set in template's "To Email" field)
-     - `{{shop_name}}` - Shop name
-     - `{{shop_address}}` - Shop address
-     - `{{shop_number}}` - Shop phone
-     - `{{invoice_id}}` - Invoice number
-     - `{{date}}` - Invoice date
-     - `{{name}}` - Customer name
-     - `{{address}}` - Customer address
-     - `{{customer_number}}` - Customer phone
-     - `{{items_list}}` - HTML table of items
-     - `{{subtotal}}` - Subtotal amount
-     - `{{tax}}` - Tax amount
-     - `{{discount}}` - Discount amount
-     - `{{amount}}` - Total amount
+     - `{{subject}}` - Email subject line
+     - `{{{html_code}}}` - Complete HTML email body (⚠️ MUST use triple braces `{{{` `}}}`)
+   
+   **Template Configuration:**
+   - **To Email**: `{{to_email}}`
+   - **Subject**: `{{subject}}`
+   - **Content**: `{{{html_code}}}`
+   
+   ⚠️ **CRITICAL**: Use **triple braces** `{{{html_code}}}` (not double `{{html_code}}`) to render HTML properly. Double braces will escape HTML and show code as text.
+   
    - Note your Template ID
    
 4. **Get API Credentials**
@@ -164,13 +161,34 @@ Also update the `Access-Control-Allow-Origin` in the `@app.after_request` functi
 
 ### Important EmailJS Setup
 
-⚠️ **Critical Step**: In your EmailJS template settings:
-- Go to: https://dashboard.emailjs.com/admin/templates/YOUR_TEMPLATE_ID
-- Edit template → Settings
-- **Set "To Email" field to**: `{{to_email}}`
-- Save template
+⚠️ **Critical Steps for Email to Work**:
 
-Without this, you'll get "The recipients address is empty" error.
+1. **Template "To Email" Setting**:
+   - Go to: https://dashboard.emailjs.com/admin/templates/YOUR_TEMPLATE_ID
+   - Edit template → Settings
+   - **Set "To Email" field to**: `{{to_email}}`
+   - Save template
+
+2. **Template Content Configuration**:
+   - In the template editor, set:
+     - **Subject**: `{{subject}}`
+     - **Content**: `{{{html_code}}}`
+   - **IMPORTANT**: Use **triple braces** `{{{html_code}}}` NOT double braces `{{html_code}}`
+   - Triple braces render HTML, double braces escape it (shows code as text)
+
+3. **Test Your Template**:
+   - After saving, click "Test it" in EmailJS dashboard
+   - Use these test values:
+     ```
+     to_email: your-email@example.com
+     subject: Test Email
+     html_code: <h1>Test</h1><p>This is a test</p>
+     ```
+   - You should receive a properly formatted HTML email
+
+Without these settings, emails will either:
+- Not send (empty recipient error)
+- Show HTML code as text instead of rendered HTML (if using double braces)
 
 ## 📂 Project Structure
 

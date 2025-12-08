@@ -159,8 +159,71 @@ if EMAILJS_SERVICE_ID and EMAILJS_TEMPLATE_ID and EMAILJS_PUBLIC_KEY:
 else:
     print("⚠️ WARNING: EmailJS not configured. Set EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, and EMAILJS_PUBLIC_KEY in .env")
 
-# Email sending will be handled by frontend using EmailJS
-# Backend provides EmailJS configuration securely
+def generate_otp_html(otp, email_type='signup'):
+    """Generate HTML content for OTP emails"""
+    if email_type == 'signup':
+        subject = 'Verify Your Email - Invoice System'
+        html_content = f'''
+        <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+                    <h1 style="color: white; margin: 0;">Email Verification</h1>
+                </div>
+                <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <h2 style="color: #333; margin-top: 0;">Welcome to Invoice System!</h2>
+                    <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                        Thank you for signing up. Please use the verification code below to complete your registration:
+                    </p>
+                    <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0;">
+                        <p style="color: #999; font-size: 14px; margin: 0 0 10px 0;">Your Verification Code</p>
+                        <h1 style="color: #667eea; font-size: 36px; letter-spacing: 8px; margin: 0;">{otp}</h1>
+                    </div>
+                    <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                        This code will expire in <strong>10 minutes</strong>. If you didn't request this code, please ignore this email.
+                    </p>
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                    <p style="color: #999; font-size: 12px; text-align: center;">
+                        Invoice System - Professional Invoice Management
+                    </p>
+                </div>
+            </body>
+        </html>
+        '''
+    else:  # password_reset
+        subject = 'Password Reset Code - Invoice System'
+        html_content = f'''
+        <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+                    <h1 style="color: white; margin: 0;">Password Reset</h1>
+                </div>
+                <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <h2 style="color: #333; margin-top: 0;">Reset Your Password</h2>
+                    <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                        You requested to reset your password. Please use the verification code below:
+                    </p>
+                    <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0;">
+                        <p style="color: #999; font-size: 14px; margin: 0 0 10px 0;">Your Reset Code</p>
+                        <h1 style="color: #f5576c; font-size: 36px; letter-spacing: 8px; margin: 0;">{otp}</h1>
+                    </div>
+                    <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                        This code will expire in <strong>10 minutes</strong>. If you didn't request this reset, please ignore this email and your password will remain unchanged.
+                    </p>
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                    <p style="color: #999; font-size: 12px; text-align: center;">
+                        Invoice System - Professional Invoice Management
+                    </p>
+                </div>
+            </body>
+        </html>
+        '''
+    
+    return {
+        'subject': subject,
+        'html_code': html_content,
+        'otp': otp,  # Include OTP separately for template
+        'email_type': email_type
+    }
 
 # EmailJS Configuration Endpoint
 @app.route('/api/emailjs-config', methods=['GET', 'OPTIONS'])
@@ -216,13 +279,18 @@ def send_signup_otp():
             upsert=True
         )
         
-        # TODO: Implement signup OTP email via Resend API
-        # For now, OTP is stored in database but email is not sent
-        print(f"⚠️ Signup OTP email not implemented: {otp}")
+        # Generate OTP email HTML
+        email_data = generate_otp_html(otp, 'signup')
         
         return jsonify({
             "success": True,
-            "message": "Verification OTP sent to your email"
+            "message": "Verification OTP ready to send",
+            "email_data": {
+                "to_email": email,
+                "subject": email_data['subject'],
+                "html_code": email_data['html_code'],
+                "otp": email_data['otp']  # Include plain OTP
+            }
         })
         
     except Exception as e:
@@ -372,13 +440,18 @@ def forgot_password():
             }
         )
         
-        # TODO: Implement password reset OTP email via Resend API
-        # For now, OTP is stored in database but email is not sent
-        print(f"⚠️ Password reset OTP email not implemented: {otp}")
+        # Generate OTP email HTML
+        email_data = generate_otp_html(otp, 'password_reset')
         
         return jsonify({
             "success": True,
-            "message": f"Password reset OTP sent to {email}"
+            "message": "Password reset OTP ready to send",
+            "email_data": {
+                "to_email": email,
+                "subject": email_data['subject'],
+                "html_code": email_data['html_code'],
+                "otp": email_data['otp']  # Include plain OTP
+            }
         })
         
     except Exception as e:

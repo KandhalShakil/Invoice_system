@@ -2687,8 +2687,8 @@
     <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         // Backend URL - Always use Render production server
-        const API_BASE = 'https://invoice-system-vpmz.onrender.com';
-        // const API_BASE = 'http://localhost:5000';
+        // const API_BASE = 'https://invoice-system-vpmz.onrender.com';
+        const API_BASE = 'http://localhost:5000';
         console.log('API Base URL:', API_BASE);
         let currentItems = [];
         let invoiceItems = [];
@@ -2727,6 +2727,45 @@
         
         // Load EmailJS config on page load
         loadEmailJSConfig();
+        
+        // Helper function to send email via EmailJS (for invoices and OTP)
+        async function sendEmailViaEmailJS(toEmail, htmlCode) {
+            try {
+                if (!EMAILJS_CONFIG.configured) {
+                    throw new Error('EmailJS not configured on backend');
+                }
+                
+                const emailData = {
+                    service_id: EMAILJS_CONFIG.service_id,
+                    template_id: EMAILJS_CONFIG.template_id,
+                    user_id: EMAILJS_CONFIG.public_key,
+                    template_params: {
+                        email: toEmail,
+                        HTML_CODE: htmlCode
+                    }
+                };
+                
+                const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailData)
+                });
+                
+                if (emailResponse.ok) {
+                    console.log('✅ Email sent successfully to:', toEmail);
+                    return true;
+                } else {
+                    const errorText = await emailResponse.text();
+                    console.error('❌ Email API error:', errorText);
+                    throw new Error(errorText);
+                }
+            } catch (error) {
+                console.error('❌ Email sending failed:', error);
+                throw error;
+            }
+        }
         
         // Helper function to get auth headers
         function getAuthHeaders() {
@@ -4279,45 +4318,11 @@
                             </html>
                             `;
                             
-                            console.log('Sending email to:', data.email_data.customer_email);
+                            // Send invoice email using the helper function
+                            await sendEmailViaEmailJS(data.email_data.customer_email, htmlCode);
                             
-                            // Check if EmailJS is configured
-                            if (!EMAILJS_CONFIG.configured) {
-                                throw new Error('EmailJS not configured on backend');
-                            }
-                            
-                            // Send email via EmailJS REST API using backend configuration
-                            const emailData = {
-                                service_id: EMAILJS_CONFIG.service_id,
-                                template_id: EMAILJS_CONFIG.template_id,
-                                user_id: EMAILJS_CONFIG.public_key,
-                                template_params: {
-                                    email: data.email_data.customer_email,
-                                    invoice_id: data.email_data.invoice_id,
-                                    shop_name: data.email_data.shop_name,
-                                    HTML_CODE: htmlCode
-                                },
-                                accessToken: EMAILJS_CONFIG.public_key
-                            };
-                            
-                            console.log('Sending email with complete HTML template...');
-                            
-                            const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(emailData)
-                            });
-                            
-                            if (emailResponse.ok) {
-                                console.log('Email sent successfully!');
-                                showNotification('Email Sent! 📧', `Invoice emailed to ${data.email_data.customer_email}`, 'success');
-                            } else {
-                                const errorText = await emailResponse.text();
-                                console.error('Email API error:', errorText);
-                                throw new Error(errorText);
-                            }
+                            console.log('Email sent successfully!');
+                            showNotification('Email Sent! 📧', `Invoice emailed to ${data.email_data.customer_email}`, 'success');
                         } catch (emailError) {
                             console.error('Email sending failed:', emailError);
                             console.error('Error details:', emailError.message || emailError.text);

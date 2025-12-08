@@ -392,12 +392,87 @@
 
     <script>
         // Backend URL - Always use Render production server
-        const API_BASE = 'https://invoice-system-vpmz.onrender.com';
+        // const API_BASE = 'https://invoice-system-vpmz.onrender.com';
+        const API_BASE = 'http://localhost:5000';
         console.log('API Base URL:', API_BASE);
         let currentEmail = '';
         let resetTimer = null;
         let verifyTimer = null;
         let timeLeft = 60;
+
+        // EmailJS Configuration - Fetched from backend
+        let EMAILJS_CONFIG = {
+            service_id: '',
+            template_id: '',
+            public_key: '',
+            configured: false
+        };
+
+        // Fetch EmailJS configuration from backend
+        async function loadEmailJSConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/api/emailjs-config`);
+                if (response.ok) {
+                    EMAILJS_CONFIG = await response.json();
+                    if (EMAILJS_CONFIG.configured) {
+                        console.log('✅ EmailJS configuration loaded');
+                    } else {
+                        console.warn('⚠️ EmailJS not configured on backend');
+                    }
+                } else {
+                    console.error('Failed to fetch EmailJS config');
+                }
+            } catch (error) {
+                console.error('Error loading EmailJS config:', error);
+            }
+        }
+
+        // Load EmailJS config on page load
+        let emailJSConfigPromise = loadEmailJSConfig();
+
+        // Helper function to send email via EmailJS
+        async function sendEmailViaEmailJS(toEmail, htmlCode) {
+            try {
+                // Ensure EmailJS config is loaded
+                await emailJSConfigPromise;
+                
+                if (!EMAILJS_CONFIG.configured) {
+                    console.error('EmailJS not configured on backend');
+                    throw new Error('EmailJS not configured');
+                }
+
+                const emailData = {
+                    service_id: EMAILJS_CONFIG.service_id,
+                    template_id: EMAILJS_CONFIG.template_id,
+                    user_id: EMAILJS_CONFIG.public_key,
+                    template_params: {
+                        email: toEmail,
+                        subject : "Verify Your Email - Invoice System",
+                        HTML_CODE: htmlCode
+                    }
+                };
+
+                const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailData)
+                });
+
+                if (emailResponse.ok) {
+                    console.log('✅ Email sent successfully to:', toEmail);
+                    return true;
+                } else {
+                    const errorText = await emailResponse.text();
+                    console.error('❌ Email API error:', errorText);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Email sending failed:', error);
+                return false;
+            }
+        }
 
         // Mode switching functions
         function switchToLogin() {
@@ -608,8 +683,19 @@
 
                 const data = await response.json();
 
-                if (data.success) {
-                    showMessage('Verification code sent! Check your email.', 'success');
+                if (data.success && data.email_data) {
+                    // Send OTP email via EmailJS
+                    const emailSent = await sendEmailViaEmailJS(
+                        data.email_data.to_email,
+                        data.email_data.html_code
+                    );
+
+                    if (emailSent) {
+                        showMessage('Verification code sent! Check your email.', 'success');
+                    } else {
+                        showMessage('Verification code generated but email sending failed. Check console.', 'error');
+                    }
+
                     document.getElementById('signupDetailsStep').style.display = 'none';
                     document.getElementById('verifyEmailStep').style.display = 'block';
                     document.getElementById('verifyEmailDisplay').textContent = email;
@@ -713,8 +799,19 @@
 
                 const data = await response.json();
 
-                if (data.success) {
-                    showMessage('Reset OTP sent! Check your email.', 'success');
+                if (data.success && data.email_data) {
+                    // Send OTP email via EmailJS
+                    const emailSent = await sendEmailViaEmailJS(
+                        data.email_data.to_email,
+                        data.email_data.html_code
+                    );
+
+                    if (emailSent) {
+                        showMessage('Reset OTP sent! Check your email.', 'success');
+                    } else {
+                        showMessage('Reset OTP generated but email sending failed. Check console.', 'error');
+                    }
+
                     document.getElementById('forgotEmailStep').style.display = 'none';
                     document.getElementById('resetPasswordStep').style.display = 'block';
                     document.querySelector('.otp-input-reset').focus();

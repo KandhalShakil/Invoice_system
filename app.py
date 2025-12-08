@@ -819,6 +819,25 @@ def get_customers():
     try:
         user_email = request.user_email
         customers = list(customers_collection.find({"user_email": user_email}).sort("created_at", -1))
+        
+        # Calculate total purchases and spent for each customer
+        for customer in customers:
+            customer_email = customer.get('customer_email', '')
+            customer_phone = customer.get('customer_phone', '')
+            
+            # Find all invoices for this customer (by email or phone)
+            customer_invoices = list(invoices_collection.find({
+                "user_email": user_email,
+                "$or": [
+                    {"customer_email": customer_email},
+                    {"customer_number": customer_phone}
+                ]
+            }))
+            
+            # Calculate totals
+            customer['total_purchases'] = len(customer_invoices)
+            customer['total_spent'] = sum(invoice.get('total', 0) for invoice in customer_invoices)
+        
         serialized_customers = [serialize_doc(customer) for customer in customers]
         return jsonify({"success": True, "customers": serialized_customers})
     except Exception as e:
@@ -981,6 +1000,25 @@ def search_customers():
             ],
             "user_email": user_email
         }))
+        
+        # Calculate total purchases and spent for each customer
+        for customer in customers:
+            customer_email = customer.get('customer_email', '')
+            customer_phone = customer.get('customer_phone', '')
+            
+            # Find all invoices for this customer (by email or phone)
+            customer_invoices = list(invoices_collection.find({
+                "user_email": user_email,
+                "$or": [
+                    {"customer_email": customer_email},
+                    {"customer_number": customer_phone}
+                ]
+            }))
+            
+            # Calculate totals
+            customer['total_purchases'] = len(customer_invoices)
+            customer['total_spent'] = sum(invoice.get('total', 0) for invoice in customer_invoices)
+        
         serialized_customers = [serialize_doc(customer) for customer in customers]
         return jsonify({"success": True, "customers": serialized_customers})
     except Exception as e:

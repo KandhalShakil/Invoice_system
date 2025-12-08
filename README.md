@@ -1,296 +1,351 @@
-# 🛒 Grocery Shop Invoice System
+# 📋 Invoice Management System
 
-A comprehensive web-based invoice management system for grocery shops with MongoDB integration, email verification, and PDF invoice generation.
+A professional invoice management system with inventory tracking, customer management, and automated email delivery.
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com)
 
-## 📋 Features
+## 🌐 Live Deployment
 
-### 🔐 Authentication & Security
-- **Email Verification** - OTP-based email verification during signup
-- **Password Authentication** - Secure password-based login system
-- **Forgot Password** - OTP-based password reset via email
-- **Session Management** - 24-hour session tokens with automatic expiry
-- **Environment Variables** - Secure credential management with `.env`
+- **Frontend (Vercel)**: https://kandhal-invoice-system.vercel.app
+- **Backend API (Render)**: https://invoice-system-vpmz.onrender.com
 
-### 📦 Inventory Management
-- Add, edit, and delete items
-- Real-time stock tracking
-- Unit support (kg, liters, pieces, etc.)
-- Search functionality
-- Stock alerts and management
+## ✨ Features
 
-### 🧾 Invoice Generation
-- Create detailed invoices with multiple items
-- Automatic calculations (subtotal, tax, discount)
-- Customer information management
-- Invoice history and tracking
-- PDF invoice generation and download
-
-### 📊 Dashboard & Analytics
-- Sales statistics and trends
-- Revenue tracking
-- Top customers analysis
-- Daily sales charts
-- Inventory overview
-
-### 📄 PDF Generation
-- Professional invoice PDFs
-- Dynamic shop details
-- Indian Rupee (Rs) formatting
-- Download and email support
+- 🏪 **Multi-Store Management** - Manage multiple shops from one account
+- 📦 **Inventory Management** - Track items, stock, and prices
+- 👥 **Customer Database** - Store customer information and purchase history
+- 📄 **Invoice Generation** - Create professional invoices with PDF export
+- 📧 **Email Delivery** - Send invoices directly via EmailJS
+- 📊 **Sales Dashboard** - View real-time statistics and insights
+- 🔐 **Secure Authentication** - Email-based OTP verification
+- 📱 **Responsive Design** - Works seamlessly on all devices
+- 🎨 **Modern UI** - Beautiful gradient design with smooth animations
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.11 or higher
-- MongoDB Atlas account
-- Gmail account with App Password enabled
 
-### Installation
+- Python 3.11+
+- MongoDB Atlas account
+- EmailJS account (for email functionality)
+
+### Local Development
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/KandhalShakil/Invoice_system.git
-cd Invoice_system
+   ```bash
+   git clone https://github.com/KandhalShakil/Invoice_system.git
+   cd Invoice_system
+   ```
+
+2. **Create virtual environment**
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows
+   source .venv/bin/activate  # Linux/Mac
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment variables**
+   
+   Create a `.env` file in the root directory:
+   ```env
+   MONGODB_URI=your_mongodb_connection_string
+   MONGODB_DATABASE=grocery_shop
+   FLASK_SECRET_KEY=your_secret_key_here
+   FLASK_ENV=development
+   FLASK_DEBUG=True
+   FLASK_HOST=0.0.0.0
+   FLASK_PORT=5000
+   ```
+
+5. **Run the application**
+   ```bash
+   python app.py
+   ```
+
+6. **Access the app**
+   - Open browser: http://localhost:5000/static/index.html
+
+## 🌍 Deployment
+
+### Deploy Backend to Render
+
+1. Fork/clone this repository to your GitHub account
+2. Go to [Render Dashboard](https://dashboard.render.com/)
+3. Click "New +" → "Web Service"
+4. Connect your GitHub repository
+5. Render will automatically detect `render.yaml` and configure deployment
+6. Add environment variable:
+   - `MONGODB_URI`: Your MongoDB connection string
+7. Click "Create Web Service"
+8. Your backend will be live at: `https://YOUR-APP-NAME.onrender.com`
+
+### Deploy Frontend to Vercel
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click "Add New" → "Project"
+3. Import your GitHub repository
+4. Vercel will automatically detect `vercel.json` configuration
+5. Click "Deploy"
+6. Your frontend will be live at: `https://YOUR-APP-NAME.vercel.app`
+
+### Post-Deployment Configuration
+
+After deploying, update the CORS origins in `app.py`:
+
+```python
+CORS(app, 
+     supports_credentials=True,
+     origins=[
+         'https://YOUR-VERCEL-APP.vercel.app',  # Add your Vercel URL
+         'http://localhost:3000',
+         'http://127.0.0.1:5000',
+     ],
+     ...)
 ```
 
-2. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+Also update the `Access-Control-Allow-Origin` in the `@app.after_request` function.
 
-3. **Configure environment variables**
-```bash
-# Copy example env file
-cp .env.example .env
+## 📧 Email Configuration (EmailJS)
 
-# Edit .env with your credentials
-# - MongoDB connection string
-# - Gmail email and app password
-# - Flask secret key
-```
+1. Create account at [EmailJS](https://www.emailjs.com/)
+2. Create email service (Gmail/Outlook/etc.)
+3. Create email template with these variables:
+   - `{{to_email}}` - Recipient email (⚠️ MUST be set in template's "To Email" field)
+   - `{{shop_name}}` - Shop name
+   - `{{invoice_id}}` - Invoice number
+   - `{{items_list}}` - HTML table of items
+   - `{{total}}` - Total amount
+   - (See full list in `static/index.html`)
+4. Get your credentials:
+   - Service ID
+   - Template ID
+   - Public Key
+5. Update in `static/index.html` (lines 4152-4154)
 
-4. **Run the application**
-```bash
-python app.py
-```
+### Important EmailJS Setup
 
-5. **Access the application**
-- Login: http://127.0.0.1:5000/login.html
-- Main App: http://127.0.0.1:5000/index.html
+⚠️ **Critical Step**: In your EmailJS template settings:
+- Go to: https://dashboard.emailjs.com/admin/templates/YOUR_TEMPLATE_ID
+- Edit template → Settings
+- **Set "To Email" field to**: `{{to_email}}`
+- Save template
 
-## 🔧 Configuration
+Without this, you'll get "The recipients address is empty" error.
 
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# MongoDB Configuration
-MONGODB_URI=your_mongodb_connection_string
-MONGODB_DATABASE=grocery_shop
-
-# SMTP Email Configuration
-SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-SMTP_EMAIL=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-
-# Flask Configuration
-FLASK_SECRET_KEY=your_secret_key_here
-FLASK_DEBUG=False
-FLASK_HOST=0.0.0.0
-FLASK_PORT=5000
-```
-
-### Gmail App Password Setup
-
-1. Enable 2-Factor Authentication in your Google Account
-2. Go to [App Passwords](https://myaccount.google.com/apppasswords)
-3. Generate a new app password for "Mail"
-4. Copy the 16-character password to `.env`
-
-See [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) for detailed setup instructions.
-
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```
 Invoice_system/
-│
-├── app.py                      # Main Flask application
-├── requirements.txt            # Python dependencies
-├── .env                        # Environment variables (not in git)
-├── .env.example               # Environment template
-├── .gitignore                 # Git ignore rules
-│
+├── app.py                  # Flask backend API
+├── requirements.txt        # Python dependencies
+├── render.yaml            # Render deployment config
+├── vercel.json            # Vercel deployment config
+├── .env                   # Environment variables (create this)
+├── .gitignore             # Git ignore rules
 ├── static/
-│   ├── index.html             # Main application interface
-│   └── login.html             # Authentication interface
-│
-├── ENVIRONMENT_SETUP.md       # Environment setup guide
-├── SECURITY.md                # Security best practices
-└── README.md                  # This file
+│   └── index.html         # Frontend SPA
+├── INVOICE_GENERATOR.py   # Legacy invoice generator
+└── README.md              # This file
 ```
 
-## 🎨 Screenshots
+## 🔧 Technologies Used
 
-### Authentication
-- **Signup** - Email verification with OTP
-- **Login** - Password-based authentication
-- **Forgot Password** - OTP-based password reset
+### Backend
+- **Flask** - Python web framework
+- **PyMongo** - MongoDB driver
+- **ReportLab** - PDF generation
+- **Gunicorn** - Production WSGI server
+- **Flask-CORS** - Cross-origin resource sharing
 
-### Dashboard
-- Real-time statistics
-- Sales overview
-- Inventory status
-- Quick actions
+### Frontend
+- **Vanilla JavaScript** - No frameworks, pure JS
+- **EmailJS** - Browser-based email service
+- **HTML5/CSS3** - Modern responsive design
+- **QRCode.js** - QR code generation
 
-### Invoice Management
-- Create new invoices
-- View invoice history
-- Download PDF invoices
-- Customer management
+### Database
+- **MongoDB Atlas** - Cloud database
 
-## 🔒 Security Features
+### Deployment
+- **Render** - Backend hosting
+- **Vercel** - Frontend hosting
+- **GitHub** - Version control
+
+## 🔐 Security Features
 
 - ✅ Password hashing (SHA-256)
-- ✅ Email verification with OTP
-- ✅ Session token authentication
+- ✅ Email OTP verification
+- ✅ Session token authentication (24-hour expiry)
 - ✅ Environment variable protection
 - ✅ CORS configuration
 - ✅ HttpOnly cookies
-- ✅ Session expiration
-- ✅ Input validation
+- ✅ MongoDB Atlas encryption
 
-See [SECURITY.md](SECURITY.md) for comprehensive security documentation.
-
-## 📚 API Endpoints
+## 📊 API Endpoints
 
 ### Authentication
 - `POST /api/auth/send-signup-otp` - Send signup verification OTP
 - `POST /api/auth/verify-signup` - Verify OTP and create account
-- `POST /api/auth/login` - Login with email and password
-- `POST /api/auth/forgot-password` - Send password reset OTP
+- `POST /api/auth/login` - Login with email/password
+- `POST /api/auth/logout` - Logout and invalidate session
+- `POST /api/auth/verify-session` - Check if session is valid
+- `POST /api/auth/forgot-password` - Request password reset OTP
 - `POST /api/auth/reset-password` - Reset password with OTP
-- `POST /api/auth/verify-session` - Verify session token
-- `POST /api/auth/logout` - Logout and clear session
 
-### Items (Inventory)
+### Items Management
 - `GET /api/items` - Get all items
 - `POST /api/items` - Add new item
 - `PUT /api/items/<id>` - Update item
 - `DELETE /api/items/<id>` - Delete item
-- `GET /api/items/search?q=term` - Search items
+- `GET /api/items/search?q=<query>` - Search items
+- `GET /api/items/<id>/qrcode` - Get item QR code
+
+### Customers Management
+- `GET /api/customers` - Get all customers
+- `POST /api/customers` - Add new customer
+- `PUT /api/customers/<id>` - Update customer
+- `DELETE /api/customers/<id>` - Delete customer
+- `GET /api/customers/search?q=<query>` - Search customers
 
 ### Invoices
 - `GET /api/invoices` - Get all invoices
 - `POST /api/invoices` - Create new invoice
 - `GET /api/invoices/<id>` - Get specific invoice
 - `GET /api/invoices/<id>/pdf` - Download invoice PDF
-- `DELETE /api/invoices/<id>` - Delete invoice
 
-### Analytics
-- `GET /api/stats` - Get sales statistics and dashboard data
+### Statistics
+- `GET /api/stats` - Get sales statistics
+- `GET /api/export/all-data` - Export all data as JSON
 
-## 🛠️ Technologies Used
+### Health
+- `GET /health` - Health check endpoint
 
-- **Backend**: Flask 3.0.0, Python 3.11+
-- **Database**: MongoDB Atlas
-- **PDF Generation**: ReportLab
-- **Email**: SMTP (Gmail)
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Authentication**: Session-based with OTP verification
-- **Security**: python-dotenv, hashlib
-
-## 📖 Usage Guide
+## 🎯 Usage Guide
 
 ### First Time Setup
 
-1. **Create Account**
-   - Click "Create Account" on login page
-   - Fill in shop details and create password
-   - Verify email with OTP sent to your inbox
-   - Login with your credentials
+1. **Sign Up**
+   - Enter your shop details
+   - Verify email with OTP
+   - Login to dashboard
 
-2. **Add Inventory**
-   - Navigate to "Manage Items"
-   - Click "Add New Item"
-   - Enter item details (name, price, stock, unit)
-   - Click "Add Item"
+2. **Add Items**
+   - Go to "Items" tab
+   - Add products with prices
+   - Manage stock levels
 
-3. **Create Invoice**
-   - Go to "Create Invoice"
-   - Enter customer details
-   - Add items to invoice
-   - Set tax and discount (optional)
-   - Click "Generate Invoice"
-   - Download PDF or view online
+3. **Add Customers**
+   - Go to "Customers" tab
+   - Add customer information
+   - Track purchase history
 
-4. **View Analytics**
-   - Check dashboard for sales overview
-   - View top customers
-   - Monitor daily sales trends
-   - Track inventory levels
+4. **Create Invoices**
+   - Go to "Create Invoice" tab
+   - Select customer and items
+   - Set tax/discount rates
+   - Generate and send invoice
+
+### Features Walkthrough
+
+- **Dashboard**: View sales statistics and recent activity
+- **Items**: Manage inventory with QR codes
+- **Customers**: Store and search customer database
+- **Create Invoice**: Generate professional invoices
+- **View Invoices**: Browse and download past invoices
+
+## 🐛 Troubleshooting
+
+### Render Free Tier Sleeps
+
+Render free tier apps sleep after 15 minutes of inactivity. First request may take 30-60 seconds to wake up.
+
+**Solution**: The frontend automatically pings `/health` endpoint to wake the server.
+
+### Email Not Sending
+
+**Error**: "The recipients address is empty" (422)
+
+**Solution**: Configure EmailJS template:
+1. Go to EmailJS Dashboard
+2. Edit your template
+3. Set "To Email" field to: `{{to_email}}`
+4. Save and retry
+
+### CORS Errors
+
+**Error**: "Access-Control-Allow-Origin" blocked
+
+**Solution**: Add your Vercel URL to CORS origins in `app.py`:
+```python
+origins=[
+    'https://your-app.vercel.app',
+    ...
+]
+```
+
+### MongoDB Connection Issues
+
+**Error**: "MongoServerError" or connection timeout
+
+**Solutions**:
+- Check MongoDB Atlas IP whitelist (allow 0.0.0.0/0)
+- Verify connection string in `.env`
+- Ensure database user has read/write permissions
+
+## 📝 Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| MONGODB_URI | Yes | - | MongoDB connection string |
+| MONGODB_DATABASE | No | grocery_shop | Database name |
+| FLASK_SECRET_KEY | No | auto-generated | Flask secret key |
+| FLASK_ENV | No | development | Environment (development/production) |
+| FLASK_DEBUG | No | False | Debug mode |
+| FLASK_HOST | No | 0.0.0.0 | Server host |
+| FLASK_PORT | No | 5000 | Server port |
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
+Contributions are welcome! Please:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is open source and available under the [MIT License](LICENSE).
 
-## 👨‍💻 Author
+## 👤 Author
 
-**Kandhal Shakil**
+**Shakil Kandhal**
 - GitHub: [@KandhalShakil](https://github.com/KandhalShakil)
-- Email: kandhalshakil@gmail.com
+- Email: shakilkandhal@gmail.com
 
 ## 🙏 Acknowledgments
 
-- Flask framework and community
-- MongoDB Atlas for cloud database
-- ReportLab for PDF generation
-- Bootstrap & modern CSS for UI inspiration
+- Flask and Python community
+- MongoDB for database
+- EmailJS for email service
+- Render and Vercel for hosting
+- All open-source contributors
 
 ## 📞 Support
 
-For support, email kandhalshakil@gmail.com or create an issue in the repository.
+If you encounter any issues or have questions:
 
-## 🔄 Version History
-
-- **v1.0.0** (December 2025)
-  - Initial release
-  - Email verification system
-  - Password-based authentication
-  - Invoice management
-  - PDF generation
-  - Dashboard analytics
-  - Environment variable security
-
-## 🚧 Future Enhancements
-
-- [ ] Multi-language support
-- [ ] Dark mode theme
-- [ ] Export data to Excel
-- [ ] SMS notifications
-- [ ] Payment gateway integration
-- [ ] Mobile app (React Native)
-- [ ] Advanced reporting
-- [ ] Barcode scanner integration
-- [ ] Multi-store support
-- [ ] Role-based access control
+1. Check [Troubleshooting](#-troubleshooting) section
+2. Open an [Issue](https://github.com/KandhalShakil/Invoice_system/issues)
+3. Contact: shakilkandhal@gmail.com
 
 ---
 
-⭐ **Star this repository if you find it helpful!**
+Made with ❤️ by Shakil Kandhal | Deployed on [Render](https://render.com) & [Vercel](https://vercel.com)

@@ -10,19 +10,14 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 import os
 import tempfile
-import smtplib
 import random
 import secrets
 import hashlib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 import qrcode
 from io import BytesIO
 import base64
-import threading
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+import requests
 
 # Load environment variables from .env file
 load_dotenv()
@@ -130,16 +125,7 @@ try:
 except Exception as e:
     print(f"Migration error: {e}")
 
-# Email Configuration - Support both SMTP and SendGrid
-SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
-SMTP_EMAIL = os.getenv('SMTP_EMAIL')
-SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 
-# Determine which email service to use
-USE_SENDGRID = bool(SENDGRID_API_KEY)
-USE_SMTP = bool(SMTP_EMAIL and SMTP_PASSWORD and not USE_SENDGRID)
 
 # Health check endpoint
 @app.route('/health', methods=['GET', 'OPTIONS'])
@@ -163,160 +149,11 @@ def health_check():
             'timestamp': datetime.now().isoformat()
         }), 500
 
-if USE_SENDGRID:
-    print(f"✅ SendGrid Email configured: {SMTP_EMAIL}")
-elif USE_SMTP:
-    print(f"✅ SMTP configured: {SMTP_EMAIL} via {SMTP_SERVER}:{SMTP_PORT}")
-else:
-    print("⚠️ WARNING: No email service configured. Email functionality will not work.")
-    print("   Configure either SENDGRID_API_KEY or SMTP credentials")
+# Email sending will be handled by frontend using EmailJS
+# Backend just returns invoice data for frontend to send email
+print("📧 Email sending delegated to frontend (EmailJS)")
 
-
-# Background email sender function
-def send_invoice_email_async(customer_email, invoice_id, invoice_doc, shop_name, shop_address, shop_phone, items, subtotal, tax, discount, total, tax_rate, discount_rate, customer_name, customer_address, customer_number):
-    """Send invoice email in background thread"""
-    try:
-        # Create items HTML
-        items_html = ""
-        for item in items:
-            items_html += f"""
-            <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">{item['name']}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item['quantity']} {item.get('unit', 'pcs')}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['price']:.2f}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rs {item['quantity'] * item['price']:.2f}</td>
-            </tr>
-            """
-        
-        html_content = f"""
-        <html>
-          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-            <div style="max-width: 700px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              
-              <!-- App Branding -->
-              <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #ff9933 0%, #138808 100%); border-radius: 8px;">
-                <h3 style="color: white; margin: 0; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">📊 Invoice Management System</h3>
-                <p style="color: #f0f0f0; margin: 5px 0 0 0; font-size: 12px;">Professional Invoice Generation & Management</p>
-              </div>
-              
-              <!-- Shop Details -->
-              <div style="border-bottom: 3px solid #138808; padding-bottom: 20px; margin-bottom: 30px;">
-                <h1 style="color: #138808; margin: 0; font-size: 28px;">🏪 {shop_name}</h1>
-                <p style="margin: 5px 0; color: #666; font-size: 14px;">📍 {shop_address}</p>
-                <p style="margin: 5px 0; color: #666; font-size: 14px;">📞 {shop_phone}</p>
-              </div>
-              
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                <h2 style="color: #138808; margin: 0 0 15px 0; font-size: 20px;">Invoice #{invoice_id}</h2>
-                <p style="margin: 5px 0; color: #333;"><strong>Date:</strong> {invoice_doc['order_date'].strftime('%d %B %Y')}</p>
-                <p style="margin: 5px 0; color: #333;"><strong>Customer:</strong> {customer_name}</p>
-                <p style="margin: 5px 0; color: #333;"><strong>Address:</strong> {customer_address}</p>
-                <p style="margin: 5px 0; color: #333;"><strong>Contact:</strong> {customer_number}</p>
-              </div>
-              
-              <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                <thead>
-                  <tr style="background-color: #138808; color: white;">
-                    <th style="padding: 12px; text-align: left;">Item</th>
-                    <th style="padding: 12px; text-align: center;">Quantity</th>
-                    <th style="padding: 12px; text-align: right;">Price</th>
-                    <th style="padding: 12px; text-align: right;">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items_html}
-                </tbody>
-              </table>
-              
-              <div style="border-top: 2px solid #138808; padding-top: 20px;">
-                <table style="width: 100%; max-width: 300px; margin-left: auto;">
-                  <tr>
-                    <td style="padding: 8px; color: #666;">Subtotal:</td>
-                    <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {subtotal:.2f}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px; color: #666;">Tax ({tax_rate}%):</td>
-                    <td style="padding: 8px; text-align: right; font-weight: bold;">Rs {tax:.2f}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px; color: #666;">Discount ({discount_rate}%):</td>
-                    <td style="padding: 8px; text-align: right; font-weight: bold; color: #d9534f;">- Rs {discount:.2f}</td>
-                  </tr>
-                  <tr style="border-top: 2px solid #138808;">
-                    <td style="padding: 12px; font-size: 18px; font-weight: bold; color: #138808;">Total Amount:</td>
-                    <td style="padding: 12px; text-align: right; font-size: 20px; font-weight: bold; color: #138808;">Rs {total:.2f}</td>
-                  </tr>
-                </table>
-              </div>
-              
-              <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
-                <p style="margin: 5px 0;">🙏 Thank you for your business!</p>
-                <p style="margin: 10px 0;">This invoice was generated by <strong style="color: #138808;">Invoice Management System</strong></p>
-                <p style="margin: 10px 0;">This is an automated email from <strong>{shop_name}</strong>. Please do not reply.</p>
-                <p style="margin: 10px 0;">📧 For any queries, contact us at {shop_phone}</p>
-                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                  <p style="margin: 5px 0; color: #bbb; font-size: 11px;">Powered by Invoice Management System | Professional Business Solutions</p>
-                </div>
-              </div>
-            </div>
-          </body>
-        </html>
-        """
-        
-        subject = f'📄 Invoice #{invoice_id} from {shop_name} | Invoice Management System'
-        
-        print(f"📧 Attempting to send email...")
-        print(f"   To: {customer_email}")
-        print(f"   Invoice ID: {invoice_id}")
-        
-        # Use SendGrid if available, otherwise fall back to SMTP
-        if USE_SENDGRID:
-            print(f"   Using SendGrid API")
-            message = Mail(
-                from_email=Email(SMTP_EMAIL, shop_name),
-                to_emails=To(customer_email),
-                subject=subject,
-                html_content=Content("text/html", html_content)
-            )
-            sg = SendGridAPIClient(SENDGRID_API_KEY)
-            response = sg.send(message)
-            print(f"✅ SendGrid email sent successfully!")
-            print(f"   Status Code: {response.status_code}")
-            
-        elif USE_SMTP:
-            print(f"   Using SMTP: {SMTP_SERVER}:{SMTP_PORT}")
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
-            msg['To'] = customer_email
-            
-            part = MIMEText(html_content, 'html')
-            msg.attach(part)
-            
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
-                print(f"   🔐 Starting TLS...")
-                server.starttls()
-                print(f"   🔑 Logging in...")
-                server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                print(f"   📤 Sending message...")
-                server.send_message(msg)
-            print(f"✅ SMTP email sent successfully!")
-        else:
-            print(f"❌ No email service configured!")
-            return
-        
-        print(f"   To: {customer_email}")
-        print(f"   Shop: {shop_name}")
-        print(f"   Invoice ID: {invoice_id}")
-        
-    except Exception as email_error:
-        print(f"❌ Failed to send invoice email!")
-        print(f"   To: {customer_email}")
-        print(f"   Error Type: {type(email_error).__name__}")
-        print(f"   Error: {email_error}")
-        print(f"   Shop: {shop_name}")
-        print(f"   Invoice ID: {invoice_id}")
-
+# Email functionality removed
 
 # Authentication endpoints
 @app.route('/api/auth/send-signup-otp', methods=['POST'])
@@ -361,39 +198,9 @@ def send_signup_otp():
             upsert=True
         )
         
-        # Send verification email with OTP
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = 'Verify Your Email - Grocery Shop'
-        msg['From'] = SMTP_EMAIL
-        msg['To'] = email
-        
-        html = f"""
-        <html>
-          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <h2 style="color: #138808; text-align: center;">Email Verification</h2>
-              <p style="font-size: 16px; color: #333; margin: 20px 0;">Welcome to <strong>{shop_name}</strong>!</p>
-              <p style="font-size: 16px; color: #333;">Please verify your email address to complete your account registration.</p>
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: center;">
-                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Your Verification Code:</p>
-                <h1 style="color: #138808; font-size: 42px; margin: 10px 0; letter-spacing: 8px; font-family: 'Courier New', monospace;">{otp}</h1>
-              </div>
-              <p style="font-size: 14px; color: #666;">This code will expire in <strong>10 minutes</strong>.</p>
-              <p style="font-size: 14px; color: #666; margin-top: 30px;">If you didn't request this verification, please ignore this email.</p>
-              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-              <p style="font-size: 12px; color: #999; text-align: center;">Grocery Shop Invoice System</p>
-            </div>
-          </body>
-        </html>
-        """
-        
-        part = MIMEText(html, 'html')
-        msg.attach(part)
-        
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.send_message(msg)
+        # TODO: Implement signup OTP email via Resend API
+        # For now, OTP is stored in database but email is not sent
+        print(f"⚠️ Signup OTP email not implemented: {otp}")
         
         return jsonify({
             "success": True,
@@ -547,38 +354,9 @@ def forgot_password():
             }
         )
         
-        # Send email with OTP
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = 'Password Reset OTP - Grocery Shop'
-        msg['From'] = SMTP_EMAIL
-        msg['To'] = email
-        
-        html = f"""
-        <html>
-          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <h2 style="color: #138808; text-align: center;">🔐 Password Reset</h2>
-              <h3 style="color: #333; text-align: center;">OTP Verification</h3>
-              <p style="color: #666; font-size: 16px;">Your One-Time Password for password reset is:</p>
-              <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; letter-spacing: 8px; margin: 20px 0;">
-                {otp}
-              </div>
-              <p style="color: #666; font-size: 14px;">This OTP is valid for 10 minutes. Do not share it with anyone.</p>
-              <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-              <p style="color: #999; font-size: 12px; text-align: center;">If you didn't request this, please ignore this email.</p>
-            </div>
-          </body>
-        </html>
-        """
-        
-        part = MIMEText(html, 'html')
-        msg.attach(part)
-        
-        # Send email
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.send_message(msg)
+        # TODO: Implement password reset OTP email via Resend API
+        # For now, OTP is stored in database but email is not sent
+        print(f"⚠️ Password reset OTP email not implemented: {otp}")
         
         return jsonify({
             "success": True,
@@ -740,104 +518,7 @@ def require_auth(f):
     return decorated_function
 
 # Test email endpoint (for debugging SMTP configuration)
-@app.route('/api/test-email', methods=['POST'])
-@require_auth
-def test_email():
-    """Test email configuration by sending a test email"""
-    try:
-        data = request.json
-        test_email_addr = data.get('email', '')
-        
-        if not test_email_addr:
-            return jsonify({"success": False, "error": "Email address is required"}), 400
-        
-        if not (USE_SENDGRID or USE_SMTP):
-            return jsonify({
-                "success": False, 
-                "error": "No email service configured on server"
-            }), 500
-        
-        # Get shop details
-        session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
-        shop_info = auth_collection.find_one({"session_token": session_token})
-        shop_name = shop_info.get('shop_name', 'Invoice System') if shop_info else 'Invoice System'
-        
-        subject = f'✅ Test Email from {shop_name} - Invoice Management System'
-        html = f"""
-        <html>
-          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <div style="text-align: center; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #ff9933 0%, #138808 100%); border-radius: 8px;">
-                <h1 style="color: white; margin: 0; font-size: 24px;">✅ Email Test Successful!</h1>
-              </div>
-              <p style="font-size: 16px; color: #333; margin: 20px 0;">Hello!</p>
-              <p style="font-size: 16px; color: #333;">This is a test email from <strong>{shop_name}</strong>.</p>
-              <p style="font-size: 16px; color: #333;">Your email configuration is working correctly! 🎉</p>
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                <p style="margin: 5px 0; color: #666;"><strong>Service:</strong> {'SendGrid' if USE_SENDGRID else 'SMTP'}</p>
-                <p style="margin: 5px 0; color: #666;"><strong>From:</strong> {SMTP_EMAIL}</p>
-                <p style="margin: 5px 0; color: #666;"><strong>Test Date:</strong> {datetime.now().strftime('%d %B %Y, %I:%M %p')}</p>
-              </div>
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
-                <p>Powered by Invoice Management System</p>
-              </div>
-            </div>
-          </body>
-        </html>
-        """
-        
-        # Send email via SendGrid or SMTP
-        if USE_SENDGRID:
-            message = Mail(
-                from_email=Email(SMTP_EMAIL, shop_name),
-                to_emails=To(test_email_addr),
-                subject=subject,
-                html_content=Content("text/html", html)
-            )
-            sg = SendGridAPIClient(SENDGRID_API_KEY)
-            response = sg.send(message)
-            print(f"✅ SendGrid test email sent to {test_email_addr}")
-            return jsonify({
-                "success": True,
-                "message": f"Test email sent successfully via SendGrid to {test_email_addr}"
-            })
-        else:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f'{shop_name} <{SMTP_EMAIL}>'
-            msg['To'] = test_email_addr
-            part = MIMEText(html, 'html')
-            msg.attach(part)
-            
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
-                server.starttls()
-                server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                server.send_message(msg)
-            
-            print(f"✅ SMTP test email sent to {test_email_addr}")
-            return jsonify({
-                "success": True,
-                "message": f"Test email sent successfully via SMTP to {test_email_addr}"
-            })
-        
-    except Exception as e:
-        print(f"❌ Failed to send test email: {e}")
-        return jsonify({
-            "success": False,
-            "error": f"Failed to send test email: {str(e)}"
-        }), 500
-
-# SMTP status check endpoint (no auth required for debugging)
-@app.route('/api/smtp-status', methods=['GET'])
-def smtp_status():
-    """Check if email service is configured (for debugging)"""
-    return jsonify({
-        "email_configured": USE_SENDGRID or USE_SMTP,
-        "service": "SendGrid" if USE_SENDGRID else ("SMTP" if USE_SMTP else "None"),
-        "smtp_server": SMTP_SERVER if USE_SMTP else None,
-        "smtp_port": SMTP_PORT if USE_SMTP else None,
-        "from_email": SMTP_EMAIL if (USE_SENDGRID or USE_SMTP) else "Not configured"
-    })
+# Email functionality removed
 
 # Custom JSON serialization function
 def serialize_doc(doc):
@@ -1359,8 +1040,13 @@ def create_invoice():
             return jsonify({"success": False, "error": "Invalid discount rate"}), 400
         
         send_email = data.get('send_email', False)
+        send_whatsapp = data.get('send_whatsapp', False)
+        customer_whatsapp = data.get('customer_whatsapp', '').strip()
         payment_method = data.get('payment_method', 'cash')
         notes = data.get('notes', '').strip()
+
+        if send_whatsapp and not customer_whatsapp:
+            return jsonify({"success": False, "error": "Customer WhatsApp number is required to send via WhatsApp"}), 400
         
         if not items or len(items) == 0:
             return jsonify({"success": False, "error": "No items provided"}), 400
@@ -1414,6 +1100,7 @@ def create_invoice():
             "customer_address": customer_address,
             "customer_number": customer_number,
             "customer_email": customer_email,
+            "customer_whatsapp": customer_whatsapp,
             "items": items,
             "subtotal": subtotal,
             "tax": tax,
@@ -1440,43 +1127,48 @@ def create_invoice():
         
         invoice_doc["_id"] = result.inserted_id
         
-        # Prepare response BEFORE sending email (send email in background)
+        # Prepare response BEFORE sending email/WhatsApp (send in background)
         response_data = {
             "success": True,
             "message": "Invoice created successfully",
             "invoice": serialize_doc(invoice_doc),
-            "email_sent": False  # Will be sent in background
+            "email_sent": False,
+            "whatsapp_sent": False
         }
         
-        # Send email in background thread if requested
+        # Email sending handled by frontend using EmailJS
+        # Backend returns invoice data and shop details for email
         if send_email and customer_email:
-            if not (USE_SENDGRID or USE_SMTP):
-                print("⚠️ Email requested but no email service configured")
-                response_data["message"] = "Invoice created successfully. Email not sent - no email service configured."
-                response_data["email_sent"] = False
-            else:
-                # Get shop details for email
+            try:
+                # Get shop details for email template
                 session_token = request.headers.get('Authorization', '').replace('Bearer ', '')
                 shop_info = auth_collection.find_one({"session_token": session_token})
                 
-                shop_name = shop_info.get('shop_name', 'Shop') if shop_info else 'Shop'
-                shop_address = shop_info.get('shop_address', '') if shop_info else ''
-                shop_phone = shop_info.get('shop_phone', '') if shop_info else ''
-                
-                print(f"📧 Starting email thread to send invoice #{invoice_id} to {customer_email}")
-                
-                # Start background email thread
-                email_thread = threading.Thread(
-                    target=send_invoice_email_async,
-                    args=(customer_email, invoice_id, invoice_doc, shop_name, shop_address, shop_phone, 
-                          items, subtotal, tax, discount, total, tax_rate, discount_rate,
-                          customer_name, customer_address, customer_number)
-                )
-                email_thread.daemon = True
-                email_thread.start()
-                
-                response_data["message"] = "Invoice created successfully. Email is being sent to " + customer_email
-                response_data["email_sent"] = True  # Email is being sent
+                # Prepare email data for frontend
+                response_data["email_data"] = {
+                    "shop_name": shop_info.get('shop_name', 'Shop') if shop_info else 'Shop',
+                    "shop_address": shop_info.get('shop_address', '') if shop_info else '',
+                    "shop_phone": shop_info.get('shop_phone', '') if shop_info else '',
+                    "invoice_id": invoice_id,
+                    "customer_email": customer_email,
+                    "customer_name": customer_name,
+                    "customer_address": customer_address,
+                    "customer_number": customer_number,
+                    "date": invoice_doc['order_date'].strftime('%d %B %Y'),
+                    "items": items,
+                    "subtotal": subtotal,
+                    "tax": tax,
+                    "discount": discount,
+                    "total": total,
+                    "tax_rate": tax_rate,
+                    "discount_rate": discount_rate
+                }
+                response_data["message"] = "Invoice created successfully. Email data prepared for frontend."
+                response_data["send_email_via_frontend"] = True
+            except Exception as email_error:
+                print(f"Email data preparation error: {email_error}")
+                response_data["message"] = "Invoice created successfully."
+                response_data["send_email_via_frontend"] = False
         
         return jsonify(response_data)
         

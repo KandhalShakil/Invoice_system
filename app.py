@@ -670,7 +670,7 @@ def update_item(item_id):
         # Validate ObjectId
         try:
             ObjectId(item_id)
-        except:
+        except Exception:
             return jsonify({"success": False, "error": "Invalid item ID"}), 400
         
         user_email = request.user_email
@@ -743,7 +743,7 @@ def delete_item(item_id):
         # Validate ObjectId
         try:
             ObjectId(item_id)
-        except:
+        except Exception:
             return jsonify({"success": False, "error": "Invalid item ID"}), 400
         
         user_email = request.user_email
@@ -763,7 +763,7 @@ def get_item_qrcode(item_id):
         # Validate ObjectId
         try:
             ObjectId(item_id)
-        except:
+        except Exception:
             return jsonify({"success": False, "error": "Invalid item ID"}), 400
         
         user_email = request.user_email
@@ -888,7 +888,7 @@ def update_customer(customer_id):
         # Validate ObjectId
         try:
             ObjectId(customer_id)
-        except:
+        except Exception:
             return jsonify({"success": False, "error": "Invalid customer ID"}), 400
         
         user_email = request.user_email
@@ -948,7 +948,7 @@ def delete_customer(customer_id):
         # Validate ObjectId
         try:
             ObjectId(customer_id)
-        except:
+        except Exception:
             return jsonify({"success": False, "error": "Invalid customer ID"}), 400
         
         user_email = request.user_email
@@ -1079,7 +1079,7 @@ def create_invoice():
             # Validate ObjectId
             try:
                 ObjectId(item['item_id'])
-            except:
+            except Exception:
                 return jsonify({"success": False, "error": f"Invalid item ID: {item['item_id']}"}), 400
             
             # Validate quantity
@@ -1499,3 +1499,4 @@ if __name__ == '__main__':
     port = int(os.getenv('FLASK_PORT', 5000))
     
     app.run(debug=debug_mode, host=host, port=port)
+

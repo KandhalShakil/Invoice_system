@@ -16,7 +16,7 @@ Click "Settings" tab and set:
 
 **To Email:**
 ```
-{{to_email}}
+{{email}}
 ```
 
 **From Name:** (Optional)

@@ -12,7 +12,7 @@ A professional invoice management system with inventory tracking, customer manag
 
 ## ✨ Features
 
-- 🏪 **Multi-Store Management** - Manage multiple shops from one account
+- 🏪 **Multi-Store Management** - Manage multiple shops account
 - 📦 **Inventory Management** - Track items, stock, and prices
 - 👥 **Customer Database** - Store customer information and purchase history
 - 📄 **Invoice Generation** - Create professional invoices with PDF export
